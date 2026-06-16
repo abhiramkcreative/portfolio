@@ -14,6 +14,7 @@ type KukuLanguage = "en" | "ml";
 
 type KukuIntent =
   | "greeting"
+  | "nicknameReaction"
   | "whoIsKuku"
   | "aboutAbhiram"
   | "skills"
@@ -95,13 +96,13 @@ const emotionTiming = {
   sleepingAfterIdle: 30000,
 };
 
-const characterName = "Kuku";
-const characterNickname = "Ku Ku";
+const characterName = "Abhiram K";
+const characterNickname = "Kuku";
 const commandCooldownMs = 1000;
 
 const intentDefinitions: IntentDefinition[] = [
   {
-    intent: "greeting",
+    intent: "nicknameReaction",
     expression: "playful",
     aliases: [
       "hey kuku",
@@ -109,24 +110,48 @@ const intentDefinitions: IntentDefinition[] = [
       "hey ku ku",
       "hello kuku",
       "hi kuku",
-      "hello",
-      "hi",
-      "hey",
       "kuku",
       "ku ku",
+      "who is kuku",
+      "what is kuku",
+      "kuku aaran",
       "ഹായ് കുക്കു",
       "കുക്കു",
     ],
     responses: {
       en: [
-        `Hey, I'm ${characterName}. Abhiram's little buddy. Small body, big emotions.`,
-        `Hi, I'm ${characterName}. I stay here with Abhiram's work and keep the vibe alive.`,
-        "Hello hello. Kuku is awake, emotionally charged, and slightly dramatic.",
+        `Wait wait. How do you know my nickname ${characterNickname}? That is private portfolio information.`,
+        `${characterNickname}? Oho, secret name unlocked. I am excited and slightly suspicious.`,
+        `You called me ${characterNickname}. That is my private nickname. Now I trust you... maybe.`,
       ],
       ml: [
-        "ഹായ്, ഞാൻ കുക്കു. അഭിരാമിന്റെ ചെറിയ buddy ആണ്. ചെറിയ body, വലിയ emotions.",
-        "ഹലോ ഹലോ. കുക്കു wake ആയി. Vibe ready ആണ്.",
-        "ഞാൻ കുക്കു. Abhiram-ന്റെ work-ന്റെ കൂടെ ഇവിടെ cute ആയി ഇരിക്കുന്നു.",
+        `${characterNickname}? അയ്യോ, എന്റെ private nickname എങ്ങനെ അറിഞ്ഞു?`,
+        `${characterNickname} എന്ന് വിളിച്ചോ? Secret name unlocked. ഞാൻ excited ആണ്.`,
+        `അത് എന്റെ private nickname ആണ്. എങ്ങനെ അറിഞ്ഞു? കുറച്ച് suspicious, പക്ഷേ happy.`,
+      ],
+    },
+  },
+  {
+    intent: "greeting",
+    expression: "playful",
+    aliases: [
+      "hey abhiram",
+      "hello abhiram",
+      "hi abhiram",
+      "hello",
+      "hi",
+      "hey",
+    ],
+    responses: {
+      en: [
+        `Hey, I'm ${characterName}. This is my little interactive portfolio voice.`,
+        `Hi, I'm ${characterName}. I stay here with my work and keep the vibe alive.`,
+        "Hello hello. Abhiram mode is awake, emotionally charged, and slightly dramatic.",
+      ],
+      ml: [
+        "ഹായ്, ഞാൻ Abhiram K. എന്റെ portfolio voice ആണ് ഇത്.",
+        "ഹലോ ഹലോ. Abhiram mode wake ആയി. Vibe ready ആണ്.",
+        "ഞാൻ Abhiram K. Work-ന്റെ കൂടെ ഇവിടെ cute ആയി ഇരിക്കുന്നു.",
       ],
     },
   },
@@ -140,20 +165,19 @@ const intentDefinitions: IntentDefinition[] = [
       "introduce yourself",
       "your name",
       "what is your name",
-      "who is kuku",
-      "kuku aaran",
+      "who is abhiram k",
       "നീ ആരാണ്",
     ],
     responses: {
       en: [
-        `I'm ${characterName}. Abhiram's buddy. Round shape, soft heart, dangerous amount of personality.`,
-        "I'm the tiny buddy living inside this space. I blink, I think, I support.",
-        "I'm Kuku. Small round buddy. Full-time vibe checker.",
+        `I'm ${characterName}. This round character is my playful portfolio voice.`,
+        "I'm the tiny voice living inside this space. I blink, I think, I support.",
+        "I'm Abhiram K in tiny interactive character mode. Full-time vibe checker.",
       ],
       ml: [
-        "ഞാൻ കുക്കു. Abhiram-ന്റെ buddy ആണ്. Round shape, soft heart, full personality.",
-        "ഞാൻ ഇവിടെ ഉള്ള ചെറിയ buddy ആണ്. Blink ചെയ്യും, think ചെയ്യും, support ചെയ്യും.",
-        "ചെറിയ round buddy. Feelings full ആണ്.",
+        "ഞാൻ Abhiram K. ഈ round character എന്റെ playful portfolio voice ആണ്.",
+        "ഞാൻ ഇവിടെ ഉള്ള ചെറിയ voice ആണ്. Blink ചെയ്യും, think ചെയ്യും, support ചെയ്യും.",
+        "ചെറിയ round character. Feelings full ആണ്.",
       ],
     },
   },
@@ -589,12 +613,12 @@ const intentDefinitions: IntentDefinition[] = [
       en: [
         "This portfolio is Abhiram's digital space for showing his work, skills, personality, and creative developer energy.",
         "You are inside Abhiram's portfolio. I am the emotional tour guide with a round face.",
-        "This site introduces Abhiram through work, motion, interaction, and a little Kuku drama.",
+        "This site introduces Abhiram through work, motion, interaction, and a little playful drama.",
       ],
       ml: [
         "ഇത് Abhiram-ന്റെ portfolio ആണ്. Work, skills, personality, creative developer energy എല്ലാം കാണിക്കാൻ.",
         "നിങ്ങൾ Abhiram-ന്റെ portfolio-ൽ ആണ്. ഞാൻ round face ഉള്ള emotional tour guide.",
-        "ഈ site Abhiram-നെ work, motion, interaction, Kuku drama എന്നിവയിലൂടെ introduce ചെയ്യുന്നു.",
+        "ഈ site Abhiram-നെ work, motion, interaction, playful drama എന്നിവയിലൂടെ introduce ചെയ്യുന്നു.",
       ],
     },
   },
@@ -694,12 +718,12 @@ const intentDefinitions: IntentDefinition[] = [
     responses: {
       en: [
         "Mm-hmm. I am listening with my whole round existence.",
-        "Okay. Tiny nod from Kuku.",
+        "Okay. Tiny nod from Abhiram mode.",
         "I hear you. Continue the thought, I am emotionally parked here.",
       ],
       ml: [
         "Mm-hmm. എന്റെ whole round existence കൊണ്ട് ഞാൻ കേൾക്കുന്നു.",
-        "Okay. Kuku tiny nod.",
+        "Okay. Abhiram mode tiny nod.",
         "ഞാൻ കേൾക്കുന്നുണ്ട്. Thought continue ചെയ്യൂ.",
       ],
     },
@@ -720,12 +744,12 @@ const intentDefinitions: IntentDefinition[] = [
     responses: {
       en: [
         "Bye. Come back gently. I will be here pretending I was not waiting.",
-        "See you later. Kuku will stay round and emotionally available.",
+        "See you later. Abhiram mode will stay round and emotionally available.",
         "Goodbye. May your tabs be organized and your work feel light.",
       ],
       ml: [
         "Bye. പിന്നെ വരൂ. ഞാൻ wait ചെയ്തില്ലെന്ന് pretend ചെയ്യും.",
-        "See you later. Kuku ഇവിടെ round and emotionally available ആയി ഇരിക്കും.",
+        "See you later. Abhiram mode ഇവിടെ round and emotionally available ആയി ഇരിക്കും.",
         "Good night. Work light ആകട്ടെ, tabs കുറയട്ടെ.",
       ],
     },
@@ -983,8 +1007,8 @@ const intentDefinitions: IntentDefinition[] = [
 ];
 
 const firstGreeting: Record<KukuLanguage, string> = {
-  en: "Hey, I'm Kuku. Abhiram's little buddy. Small body, big emotions. Ask me about Abhiram, his work, projects, skills, or contact.",
-  ml: "ഹായ്, ഞാൻ കുക്കു. അഭിരാമിന്റെ ചെറിയ buddy ആണ്. ചെറിയ body, വലിയ emotions. Abhiram-നെ കുറിച്ചോ, work-നെ കുറിച്ചോ, projects-നെ കുറിച്ചോ, contact-നെ കുറിച്ചോ ചോദിക്കാം.",
+  en: "Hey, I'm Abhiram K in tiny interactive character mode. Small body, big emotions. Ask me about my work, projects, skills, or contact.",
+  ml: "ഹായ്, ഞാൻ Abhiram K. Tiny interactive character mode ആണ്. Work, projects, skills, contact എന്നിവയെ കുറിച്ച് ചോദിക്കാം.",
 };
 
 const unsupportedBrowserResponses: Record<KukuLanguage, string> = {
@@ -1080,6 +1104,7 @@ const findVoiceIntent = (text: string): IntentDefinition | null => {
 const getExpressionForIntent = (intent: KukuIntent): Expression => {
   const expressionMap: Record<KukuIntent, Expression> = {
     greeting: "playful",
+    nicknameReaction: "playful",
     whoIsKuku: "playful",
     aboutAbhiram: "speaking",
     skills: "thinking",
@@ -1919,7 +1944,7 @@ export const InteractiveCharacter: React.FC = () => {
       className="relative w-full aspect-square max-w-[540px] mx-auto flex items-center justify-center [perspective:1200px] overflow-visible pointer-events-auto"
       role="button"
       tabIndex={0}
-      aria-label="Kuku, the interactive speaking character. Click to start or pause voice commands."
+      aria-label="Abhiram K, the interactive speaking character. Click to start or pause voice commands."
       onPointerDown={reactToTouch}
       onClick={startVoiceControl}
       onKeyDown={(event) => {

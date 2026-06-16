@@ -33,22 +33,22 @@ const skills = [
 const projects = [
   {
     title: "AI-Assisted Smart Security Gate",
-    desc: "A Python and OpenCV computer vision project for practical automation, number plate recognition, OCR, and access control logic.",
+    desc: "A Python and OpenCV computer vision project for practical automation, number plate recognition, OCR, vehicle access control, and real-world security workflows.",
     icon: ShieldCheck,
   },
   {
     title: "Creative Portfolio Systems",
-    desc: "Modern animated portfolio websites and interactive web experiences for personal brands, creators, and businesses in Kerala and Calicut.",
+    desc: "Modern animated portfolio websites and interactive web experiences for personal brands, creators, startups, and businesses in Kerala and Calicut.",
     icon: Code2,
   },
   {
     title: "Vestano Branding & Campaigns",
-    desc: "Creative digital solutions including brand identity, marketing visuals, proposal designs, launch campaigns, and premium presentation systems.",
+    desc: "Creative digital solutions including brand identity, marketing visuals, proposal designs, launch campaigns, presentation systems, and business communication assets.",
     icon: Palette,
   },
   {
     title: "Computer Vision Experiments",
-    desc: "AI project experiments using Python, OpenCV, face detection, object detection, number plate region detection, and visual recognition systems.",
+    desc: "AI project experiments using Python, OpenCV, face detection, object detection, number plate region detection, image processing, and visual recognition systems.",
     icon: BrainCircuit,
   },
 ];
@@ -275,13 +275,15 @@ export default function App() {
                 I’m Abhiram K, a Creative Developer from Kerala and B.Sc
                 Computer Science graduate. My work connects modern websites,
                 interactive portfolios, automation, AI experiments, Python,
-                OpenCV, branding, and clean digital design.
+                OpenCV, branding, and clean digital design for practical web
+                and software ideas.
               </p>
 
               <p className="mt-6 text-lg leading-8 text-slate-500">
-                I like building things that look premium but also solve real
-                problems — from AI-assisted security systems to portfolio
-                websites, proposals, and brand experiences.
+                I like building things that look premium, feel smooth, and
+                solve real problems — from AI-assisted security systems and
+                computer vision experiments to responsive portfolio websites,
+                proposal systems, and brand experiences for digital-first work.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
@@ -311,7 +313,9 @@ export default function App() {
             </div>
 
             <p className="max-w-md text-lg leading-7 text-slate-500">
-              A mix of software, AI, automation, branding, and visual systems.
+              A mix of creative development, software, AI, automation,
+              branding, and visual systems built with a practical,
+              user-focused approach.
             </p>
           </div>
 
