@@ -10,14 +10,25 @@ type Expression =
   | "speaking"
   | "playful";
 
+type SpeechTone = "neutral" | "playful" | "excited" | "thinking" | "soft" | "sleepy";
+
 type KukuLanguage = "en" | "ml";
+type VisitorType = "visitor" | "recruiter" | "client" | "developer" | "friend";
+type CharacterMood = "neutral" | "familiar" | "professional" | "playful" | "supportive";
 
 type KukuIntent =
   | "greeting"
+  | "visitorRecruiter"
+  | "visitorClient"
+  | "visitorDeveloper"
+  | "visitorFriend"
+  | "nicknameStretchReaction"
   | "nicknameReaction"
   | "whoIsKuku"
   | "aboutAbhiram"
   | "skills"
+  | "aiProjects"
+  | "softwareSupport"
   | "projects"
   | "experience"
   | "creativeDeveloper"
@@ -61,6 +72,18 @@ type IntentDefinition = {
   action?: IntentAction;
 };
 
+type CharacterMemory = {
+  hasHeardNickname: boolean;
+  interactionCount: number;
+  unknownCount: number;
+  repeatCount: number;
+  visitorType: VisitorType;
+  mood: CharacterMood;
+  lastTopic: KukuIntent | null;
+  recentIntents: KukuIntent[];
+  recentResponses: string[];
+};
+
 type SpeechRecognitionLike = {
   continuous: boolean;
   interimResults: boolean;
@@ -96,38 +119,202 @@ const emotionTiming = {
   sleepingAfterIdle: 30000,
 };
 
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(Math.max(value, min), max);
+
 const characterName = "Abhiram K";
-const characterNickname = "Kuku";
+const characterNickname = "Sreekkuttan";
 const commandCooldownMs = 1000;
+const recentMemoryLimit = 5;
 
 const intentDefinitions: IntentDefinition[] = [
+  {
+    intent: "visitorRecruiter",
+    expression: "speaking",
+    aliases: [
+      "i am recruiter",
+      "i am a recruiter",
+      "recruiter",
+      "hr",
+      "hiring manager",
+      "talent acquisition",
+      "job opening",
+      "we are hiring",
+      "recruiter aanu",
+      "hr aanu",
+      "job opportunity",
+    ],
+    responses: {
+      en: [
+        "Recruiter mode noted. Abhiram brings creative development, software support experience, Python, OpenCV, and practical project thinking.",
+        "If you are hiring, the useful summary is this: he can build, troubleshoot, communicate, and present work cleanly.",
+        "For a role conversation, check experience and contact. I will behave professionally now... mostly.",
+      ],
+      ml: [
+        "Recruiter mode noted. Abhiram-ന് creative development, software support, Python, OpenCV, practical project thinking എല്ലാം ഉണ്ട്.",
+        "Hiring കാര്യമാണെങ്കിൽ short summary: build ചെയ്യാം, troubleshoot ചെയ്യാം, communicate ചെയ്യാം, clean ആയി present ചെയ്യാം.",
+        "Role conversation ആണെങ്കിൽ experience-വും contact-വും നോക്കൂ. ഞാൻ ഇനി കുറച്ച് professional ആയി behave ചെയ്യും... mostly.",
+      ],
+    },
+    action: { type: "navigate", sectionId: "experience" },
+  },
+  {
+    intent: "visitorClient",
+    expression: "speaking",
+    aliases: [
+      "i am client",
+      "client",
+      "need website",
+      "i need website",
+      "build website",
+      "website venam",
+      "project venam",
+      "business website",
+      "portfolio venam",
+      "can you build for me",
+      "i have a project",
+      "work cheyyamo",
+    ],
+    responses: {
+      en: [
+        "Client mode understood. Tell Abhiram the idea, deadline, budget range, and what the website or project should do.",
+        "For project work, Abhiram can help with websites, portfolios, creative frontend, and practical AI prototypes.",
+        "Good client message formula: goal, pages, examples you like, timeline, and contact details.",
+      ],
+      ml: [
+        "Client mode മനസ്സിലായി. Idea, deadline, budget range, website/project എന്ത് ചെയ്യണം എന്ന് Abhiram-ന് അയച്ചാൽ മതി.",
+        "Project work ആണെങ്കിൽ websites, portfolios, creative frontend, practical AI prototypes എന്നിവയിൽ Abhiram help ചെയ്യാം.",
+        "Good client message formula: goal, pages, ഇഷ്ടമായ examples, timeline, contact details.",
+      ],
+    },
+    action: { type: "navigate", sectionId: "contact" },
+  },
+  {
+    intent: "visitorDeveloper",
+    expression: "thinking",
+    aliases: [
+      "i am developer",
+      "developer here",
+      "frontend developer",
+      "software developer",
+      "tech stack details",
+      "code details",
+      "github code",
+      "developer aanu",
+      "tech parayu",
+      "stack parayu",
+    ],
+    responses: {
+      en: [
+        "Developer mode unlocked. Ask about tech stack, Python, OpenCV, frontend work, or how the portfolio interactions are structured.",
+        "For dev eyes: Abhiram mixes frontend polish, motion, Python experiments, OpenCV, and practical support experience.",
+        "You can check projects and GitHub links for the more technical side.",
+      ],
+      ml: [
+        "Developer mode unlocked. Tech stack, Python, OpenCV, frontend work, portfolio interactions എന്നിവ ചോദിക്കാം.",
+        "Dev angle-ൽ നോക്കിയാൽ frontend polish, motion, Python experiments, OpenCV, support experience എന്നിവ mix ആണ്.",
+        "Technical side കാണാൻ projects-ും GitHub links-ും നോക്കൂ.",
+      ],
+    },
+    action: { type: "navigate", sectionId: "projects" },
+  },
+  {
+    intent: "visitorFriend",
+    expression: "playful",
+    aliases: [
+      "i am friend",
+      "friend",
+      "njan friend aanu",
+      "ente friend aanu",
+      "eda",
+      "mone",
+      "bro",
+      "aliya",
+      "machane",
+    ],
+    responses: {
+      en: [
+        "Friend mode? Ah, then formal behavior is cancelled. Ask anything, but keep the teasing respectful.",
+        "Okay, close-circle energy detected. If you know Sreekkuttan, I am already suspicious.",
+        "Friend visitor noted. I will be warmer, funnier, and slightly less corporate.",
+      ],
+      ml: [
+        "Friend mode ആണോ? അപ്പോൾ formal behavior cancel. എന്തും ചോദിക്കാം, teasing respectful ആക്കണേ.",
+        "Close-circle energy detected. Sreekkuttan അറിയുമെങ്കിൽ ഞാൻ already suspicious ആണ്.",
+        "Friend visitor noted. ഇനി കുറച്ച് warm, funny, less corporate.",
+      ],
+    },
+  },
+  {
+    intent: "nicknameStretchReaction",
+    expression: "playful",
+    aliases: [
+      "sreekkutta",
+      "sreekkuttaa",
+      "sreekkuttaaa",
+      "sreekkuttaaaa",
+      "sreekutta",
+      "sreekuttaa",
+      "sreekuttaaa",
+      "sreekuttaaaa",
+      "sree kutta",
+      "sree kuttaa",
+      "sree kuttaaa",
+      "sree kuttaaaa",
+      "hey sreekkutta",
+      "hey sreekkuttaa",
+      "hello sreekkutta",
+      "hi sreekkuttaa",
+      "cheekkutta",
+      "cheekkuttaa",
+      "cheekkuttaaa",
+      "cheekutta",
+      "cheekuttaa",
+      "chikkutta",
+      "chikkuttaa",
+      "ശ്രീക്കുട്ടാ",
+      "ശ്രീക്കുട്ടാാ",
+      "ചീക്കുട്ടാ",
+    ],
+    responses: {
+      en: [
+        "Ayy... Sreekkuttaa? Only people close to me call me like that. How do you know it?",
+        "You even stretched the nickname? Okay, now this feels very personal.",
+        "Cheekkuttaa? That sounded way too familiar. I'm happy... but also a little suspicious.",
+      ],
+      ml: [
+        "അയ്യേ... ശ്രീക്കുട്ടാ എന്ന് നീട്ടി വിളിച്ചല്ലോ! എന്നെ close ആയിട്ടുള്ളവർ മാത്രമേ അങ്ങനെ വിളിക്കാറുള്ളൂ.",
+        "ഓഹോ... എന്റെ nickname ഒക്കെ അറിയാമല്ലേ? എങ്ങനെ അറിഞ്ഞു?",
+        "ചീക്കുട്ടാ എന്നൊക്കെ വിളിച്ചാൽ ഞാൻ വീഴും കേട്ടോ... പക്ഷേ സത്യം പറ, ഈ പേര് എവിടുന്ന് കിട്ടി?",
+      ],
+    },
+  },
   {
     intent: "nicknameReaction",
     expression: "playful",
     aliases: [
-      "hey kuku",
-      "hay kuku",
-      "hey ku ku",
-      "hello kuku",
-      "hi kuku",
-      "kuku",
-      "ku ku",
-      "who is kuku",
-      "what is kuku",
-      "kuku aaran",
-      "ഹായ് കുക്കു",
-      "കുക്കു",
+      "hey sreekkuttan",
+      "hello sreekkuttan",
+      "hi sreekkuttan",
+      "sreekkuttan",
+      "sreekuttan",
+      "sree kuttan",
+      "sree kuttan aaran",
+      "who is sreekkuttan",
+      "what is sreekkuttan",
+      "ശ്രീക്കുട്ടൻ",
+      "ഹായ് ശ്രീക്കുട്ടൻ",
     ],
     responses: {
       en: [
-        `Wait wait. How do you know my nickname ${characterNickname}? That is private portfolio information.`,
-        `${characterNickname}? Oho, secret name unlocked. I am excited and slightly suspicious.`,
-        `You called me ${characterNickname}. That is my private nickname. Now I trust you... maybe.`,
+        "Sreekkuttan? Wait... how do you know that name?",
+        "Oho, you found the private nickname. Now I'm curious.",
+        "You called me Sreekkuttan? Okay, you're definitely not a random visitor anymore.",
       ],
       ml: [
-        `${characterNickname}? അയ്യോ, എന്റെ private nickname എങ്ങനെ അറിഞ്ഞു?`,
-        `${characterNickname} എന്ന് വിളിച്ചോ? Secret name unlocked. ഞാൻ excited ആണ്.`,
-        `അത് എന്റെ private nickname ആണ്. എങ്ങനെ അറിഞ്ഞു? കുറച്ച് suspicious, പക്ഷേ happy.`,
+        "ശ്രീക്കുട്ടൻ എന്നോ? അയ്യേ... ആ പേര് എങ്ങനെ അറിയാം?",
+        "ഓഹോ, private nickname വരെ കണ്ടുപിടിച്ചല്ലേ! ഇപ്പോൾ എനിക്ക് കുറച്ച് curiosity ആയി.",
+        "ശ്രീക്കുട്ടൻ എന്ന് വിളിച്ച സ്ഥിതിക്ക് നീ ഇനി random visitor ഒന്നുമല്ല കേട്ടോ.",
       ],
     },
   },
@@ -144,14 +331,14 @@ const intentDefinitions: IntentDefinition[] = [
     ],
     responses: {
       en: [
-        `Hey, I'm ${characterName}. This is my little interactive portfolio voice.`,
-        `Hi, I'm ${characterName}. I stay here with my work and keep the vibe alive.`,
-        "Hello hello. Abhiram mode is awake, emotionally charged, and slightly dramatic.",
+        `Hey! I'm ${characterName} in tiny interactive mode. What do you want to know?`,
+        `Hi hi! I'm ${characterName}. Ask me about my work or anything around here.`,
+        "Hello! Abhiram mode is awake and ready. Go on, ask me something.",
       ],
       ml: [
-        "ഹായ്, ഞാൻ Abhiram K. എന്റെ portfolio voice ആണ് ഇത്.",
-        "ഹലോ ഹലോ. Abhiram mode wake ആയി. Vibe ready ആണ്.",
-        "ഞാൻ Abhiram K. Work-ന്റെ കൂടെ ഇവിടെ cute ആയി ഇരിക്കുന്നു.",
+        `ഹായ്! ഞാൻ ${characterName}. Tiny interactive mode ആണ്. എന്താ അറിയേണ്ടത്?`,
+        `ഹലോ ഹലോ! ഞാൻ ${characterName}. Work-നെ കുറിച്ചോ projects-നെ കുറിച്ചോ എന്തും ചോദിച്ചോളൂ.`,
+        "ഹായ്! Abhiram mode wake ആയി. പറയൂ, എന്താ ചോദിക്കാനുള്ളത്?",
       ],
     },
   },
@@ -166,18 +353,21 @@ const intentDefinitions: IntentDefinition[] = [
       "your name",
       "what is your name",
       "who is abhiram k",
+      "nee aara",
+      "nee aran",
+      "ninte peru entha",
       "നീ ആരാണ്",
     ],
     responses: {
       en: [
         `I'm ${characterName}. This round character is my playful portfolio voice.`,
-        "I'm the tiny voice living inside this space. I blink, I think, I support.",
-        "I'm Abhiram K in tiny interactive character mode. Full-time vibe checker.",
+        `Me? I'm ${characterName} in interactive character mode. I talk about the work and keep things lively.`,
+        "I'm the small round buddy you see here. Cute face, useful information.",
       ],
       ml: [
-        "ഞാൻ Abhiram K. ഈ round character എന്റെ playful portfolio voice ആണ്.",
-        "ഞാൻ ഇവിടെ ഉള്ള ചെറിയ voice ആണ്. Blink ചെയ്യും, think ചെയ്യും, support ചെയ്യും.",
-        "ചെറിയ round character. Feelings full ആണ്.",
+        `ഞാൻ ${characterName}. ഈ round character എന്റെ playful portfolio voice ആണ്.`,
+        `ഞാനോ? ${characterName} interactive character mode-ൽ. Work-നെ കുറിച്ച് പറയും, vibe set ആക്കും.`,
+        "ഇവിടെ കാണുന്ന ഈ കുഞ്ഞ് round buddy ഞാനാണ്. Look cute, information useful.",
       ],
     },
   },
@@ -190,6 +380,9 @@ const intentDefinitions: IntentDefinition[] = [
       "who is abhiram",
       "what does abhiram do",
       "what is abhiram doing",
+      "work enthanu",
+      "abhiram work enthanu",
+      "abhiram entha cheyyunnath",
       "tell about him",
       "what he do",
       "abhiram",
@@ -200,14 +393,14 @@ const intentDefinitions: IntentDefinition[] = [
     ],
     responses: {
       en: [
-        "Abhiram is a Creative Developer who blends code, design, animation, and storytelling.",
-        "He builds digital work with logic, visuals, and a little late-night madness.",
-        "Abhiram makes things that work well and feel good.",
+        "Abhiram is a Creative Developer from Kerala who mixes code, visuals, and storytelling.",
+        "He enjoys turning rough ideas into clean websites, interactive experiences, and useful tech projects.",
+        "Abhiram is the kind of person who cares about both how something works and how it feels.",
       ],
       ml: [
-        "അഭിരാം ഒരു Creative Developer ആണ്. Code, design, animation, storytelling എല്ലാം mix ചെയ്യും.",
-        "അവൻ വെറും screens ഉണ്ടാക്കുന്ന ആളല്ല. Work-ന് ഒരു feeling കൂടി കൊടുക്കും.",
-        "Abhiram logic-ഉം visuals-ഉം ചേർത്ത് clean digital work ഉണ്ടാക്കും.",
+        "Abhiram Kerala-യിൽ നിന്നുള്ള ഒരു Creative Developer ആണ്. Code-ഉം visuals-ഉം storytelling-ഉം mix ചെയ്യും.",
+        "ഒരു rough idea കിട്ടിയാൽ അത് clean website ആയാലും interactive experience ആയാലും build ചെയ്ത് നോക്കും.",
+        "ഒരു കാര്യം work ചെയ്യണം എന്നതുപോലെ തന്നെ അത് കാണാനും feel ചെയ്യാനും നല്ലതായിരിക്കണം എന്നാണ് Abhiram-ന്റെ style.",
       ],
     },
   },
@@ -224,21 +417,89 @@ const intentDefinitions: IntentDefinition[] = [
       "what tools",
       "his skills",
       "skills parayu",
+      "skills enthokke",
+      "tools enthokke",
       "abhiram skills",
       "അഭിരാമിന്റെ skills",
     ],
     responses: {
       en: [
-        "Abhiram works with web, UI, creative visuals, software logic, and technical problem solving.",
-        "He has developer brain, creator energy, and enough curiosity to break and fix things.",
-        "His strength is mixing technical thinking with creative presentation.",
+        "Abhiram works with web development, UI, Python, OpenCV, creative visuals, and software support.",
+        "His main strength is combining technical problem-solving with a good visual sense.",
+        "He can think like a developer, present like a creator, and troubleshoot when things decide to break.",
       ],
       ml: [
-        "അഭിരാമിന് web, UI, creative visuals, software logic, technical problem solving എല്ലാം handle ചെയ്യാൻ അറിയാം.",
-        "Developer brain, creator energy, curiosity full. അതാണ് Abhiram style.",
-        "Technical thinking-ഉം creative presentation-ഉം mix ചെയ്യുന്നതാണ് അവന്റെ strength.",
+        "Web development, UI, Python, OpenCV, creative visuals, software support—ഇതൊക്കെയാണ് Abhiram handle ചെയ്യുന്നത്.",
+        "Technical problem solve ചെയ്യുന്നതും അത് clean ആയി present ചെയ്യുന്നതും കൂടെ ചെയ്യാൻ പറ്റുന്നതാണ് അവന്റെ main strength.",
+        "Developer പോലെ think ചെയ്യും, creator പോലെ present ചെയ്യും, എന്തെങ്കിലും break ആയാൽ ഇരുന്ന് fix ചെയ്യുകയും ചെയ്യും.",
       ],
     },
+  },
+  {
+    intent: "aiProjects",
+    expression: "thinking",
+    aliases: [
+      "ai project",
+      "ai projects",
+      "opencv",
+      "python project",
+      "computer vision",
+      "smart security gate",
+      "number plate recognition",
+      "ocr",
+      "automation project",
+      "tell me ai work",
+      "tell me opencv work",
+      "opencv project parayu",
+      "python project parayu",
+      "ai work parayu",
+      "number plate project parayu",
+    ],
+    responses: {
+      en: [
+        "Abhiram has worked on practical AI ideas using Python, OpenCV, OCR, and computer vision.",
+        "One of his key projects is a smart security gate that reads number plates and automates access decisions.",
+        "His AI work is more about solving real problems than just showing flashy demos.",
+      ],
+      ml: [
+        "Python, OpenCV, OCR, computer vision എന്നിവ use ചെയ്ത് practical AI ideas ആണ് Abhiram work ചെയ്തിട്ടുള്ളത്.",
+        "Number plate read ചെയ്ത് gate access automate ചെയ്യുന്ന smart security gate ആണ് അവന്റെ main projects-ലൊന്ന്.",
+        "Show മാത്രം ഉള്ള AI demo-കളേക്കാൾ real problem solve ചെയ്യുന്ന projects ആണ് അവന് കൂടുതൽ ഇഷ്ടം.",
+      ],
+    },
+    action: { type: "navigate", sectionId: "projects" },
+  },
+  {
+    intent: "softwareSupport",
+    expression: "speaking",
+    aliases: [
+      "software support",
+      "support specialist",
+      "software support specialist",
+      "pos support",
+      "retail software",
+      "troubleshooting",
+      "technical support",
+      "support experience",
+      "what support work",
+      "software support work",
+      "software support enthanu",
+      "support work enthanu",
+      "pos support parayu",
+    ],
+    responses: {
+      en: [
+        "Abhiram's software support work includes troubleshooting, POS systems, user coordination, and keeping daily operations smooth.",
+        "Support work taught him how to stay calm, find the real issue, and explain solutions clearly.",
+        "He understands what happens after software is built—when real people actually start using it.",
+      ],
+      ml: [
+        "Troubleshooting, POS systems, users-നെ coordinate ചെയ്യൽ, daily operations smooth ആക്കൽ—ഇതൊക്കെയാണ് Abhiram-ന്റെ software support side.",
+        "Problem വന്നാൽ panic ആകാതെ actual issue കണ്ടുപിടിച്ച് simple ആയി explain ചെയ്യാൻ support work അവനെ പഠിപ്പിച്ചു.",
+        "Software build ചെയ്തതിന് ശേഷം real users അത് use ചെയ്യുമ്പോൾ എന്തൊക്കെ സംഭവിക്കും എന്ന side-ും അവന് നന്നായി അറിയാം.",
+      ],
+    },
+    action: { type: "navigate", sectionId: "experience" },
   },
   {
     intent: "projects",
@@ -255,18 +516,22 @@ const intentDefinitions: IntentDefinition[] = [
       "tell me about his projects",
       "project details",
       "project parayu",
+      "projects parayu",
+      "work kanikku",
+      "projects kanikku",
+      "project kaaniku",
       "projects കാണിക്കൂ",
     ],
     responses: {
       en: [
-        "His projects show software logic, visual design, and interactive ideas working together.",
-        "Projects are where Abhiram's code stops being quiet and starts performing.",
-        "Scroll to the projects. That's where the work starts talking.",
+        "His projects mix software, visuals, interaction, and a bit of experimentation.",
+        "The project section has his AI work, web ideas, and other things he has built along the way.",
+        "Let's go to the projects. That's where the actual work speaks for him.",
       ],
       ml: [
-        "Projects section നോക്കൂ. അവിടെ Abhiram-ന്റെ code കുറച്ച് perform ചെയ്യാൻ തുടങ്ങും.",
-        "അവന്റെ projects-ൽ software logic, visual design, interactive ideas എല്ലാം mix ആണ്.",
-        "Projects ആണ് work സംസാരിക്കാൻ തുടങ്ങുന്ന സ്ഥലം.",
+        "Abhiram-ന്റെ projects-ൽ software-ഉം visuals-ഉം interaction-ഉം ഒക്കെ mix ആയിരിക്കും.",
+        "AI work, web ideas, പിന്നെ build ചെയ്ത് നോക്കിയ കുറേ experiments—എല്ലാം projects section-ൽ കാണാം.",
+        "Projects section-ലേക്ക് പോകാം. ബാക്കി work തന്നെ പറഞ്ഞോളും.",
       ],
     },
     action: { type: "navigate", sectionId: "projects" },
@@ -281,22 +546,24 @@ const intentDefinitions: IntentDefinition[] = [
       "job",
       "career",
       "where does he work",
-      "software support",
       "what experience does he have",
       "his experience",
       "experience parayu",
+      "experience enthanu",
+      "job enthanu",
+      "evide work cheyyunnu",
       "അഭിരാമിന്റെ experience",
     ],
     responses: {
       en: [
         "Abhiram has experience in software support, creative development, web work, and visual communication.",
-        "He understands both the technical side and the creative side, which is a useful combo.",
-        "He solves problems, builds ideas, and somehow keeps me emotionally employed.",
+        "His work experience sits right between technology and creativity, which is honestly a useful place to be.",
+        "He has handled real users, real deadlines, real problems, and still kept building creative things.",
       ],
       ml: [
-        "അഭിരാമിന് software support, creative development, web work, visual communication എന്നിവയിൽ experience ഉണ്ട്.",
-        "Technical side-ഉം creative side-ഉം ഒരുമിച്ച് handle ചെയ്യാൻ അവന് അറിയാം.",
-        "Problems solve ചെയ്യും, ideas build ചെയ്യും, പിന്നെ എന്നെയും emotionally maintain ചെയ്യും.",
+        "Software support, creative development, web work, visual communication—ഇതിലൊക്കെ Abhiram-ന് experience ഉണ്ട്.",
+        "Tech-നും creativity-ക്കും ഇടയിലാണ് അവന്റെ work experience. Actually, നല്ല useful combo ആണ്.",
+        "Real users, deadlines, problems എല്ലാം handle ചെയ്തിട്ടും creative things build ചെയ്യുന്നത് അവൻ നിർത്തിയിട്ടില്ല.",
       ],
     },
     action: { type: "navigate", sectionId: "experience" },
@@ -311,17 +578,19 @@ const intentDefinitions: IntentDefinition[] = [
       "why creative developer",
       "developer and designer",
       "creative developer entha",
+      "creative developer enthanu",
+      "creative developer meaning parayu",
     ],
     responses: {
       en: [
-        "A Creative Developer is where code meets imagination.",
-        "Basically, developer brain plus designer soul plus storyteller energy.",
-        "It means Abhiram can build the thing and also make it feel alive.",
+        "A Creative Developer is someone who can build the experience and also make it feel alive.",
+        "It is basically code with visual thinking, motion, interaction, and storytelling added in.",
+        "For Abhiram, it means not stopping at 'it works'—he wants it to look and feel right too.",
       ],
       ml: [
-        "Creative Developer എന്ന് പറഞ്ഞാൽ code-ഉം imagination-ഉം കൂടുന്ന സ്ഥലം.",
-        "Developer brain plus designer soul plus storyteller energy. അതാണ് Abhiram style.",
-        "Build ചെയ്യാനും അതിന് life കൊടുക്കാനും അറിയുന്ന ആളാണ് Abhiram.",
+        "Creative Developer എന്ന് പറഞ്ഞാൽ ഒരു experience build ചെയ്യാനും അതിന് life കൊടുക്കാനും അറിയുന്ന ആളാണ്.",
+        "Simple ആയി പറഞ്ഞാൽ code-ന്റെ കൂടെ visuals, motion, interaction, storytelling ഒക്കെ ചേർക്കുന്നത്.",
+        "'Work ചെയ്യുന്നുണ്ട്' എന്നിടത്ത് stop ചെയ്യാതെ 'കാണാനും feel ചെയ്യാനും നന്നാണോ' എന്നും നോക്കുന്നതാണ് Abhiram-ന്റെ style.",
       ],
     },
   },
@@ -338,17 +607,20 @@ const intentDefinitions: IntentDefinition[] = [
       "contact abhiram",
       "how to reach him",
       "contact engane",
+      "contact cheyyan engane",
+      "message engane ayakkam",
+      "email evide",
     ],
     responses: {
       en: [
-        "Use the contact section to reach Abhiram. I'll stay here and look emotionally supportive.",
-        "Scroll to contact and message him. I'll pretend I arranged the meeting.",
-        "Contact is the best move. I approve this decision with my round face.",
+        "You can reach Abhiram through the contact section. A short message is enough to get started.",
+        "Go to contact and tell him what you have in mind. He'll take it from there.",
+        "Want to talk to Abhiram? The contact section is the easiest way.",
       ],
       ml: [
-        "Contact section use ചെയ്ത് Abhiram-നെ message ചെയ്യാം. ഞാൻ ഇവിടെ cute support ആയി ഇരിക്കും.",
-        "Contact-ലേക്ക് scroll ചെയ്യൂ. Meeting ഞാൻ arrange ചെയ്തതുപോലെ ഞാൻ smile ചെയ്യും.",
-        "Message അയക്കൂ. എന്റെ round face ഈ decision approve ചെയ്യുന്നു.",
+        "Contact section വഴി Abhiram-നെ reach ചെയ്യാം. ഒരു short message മതി start ചെയ്യാൻ.",
+        "Contact-ലേക്ക് പോയി idea എന്താണെന്ന് പറഞ്ഞാൽ മതി. ബാക്കി അവൻ നോക്കിക്കോളും.",
+        "Abhiram-നോട് സംസാരിക്കണോ? Contact section ആണ് easiest way.",
       ],
     },
     action: { type: "navigate", sectionId: "contact" },
@@ -359,25 +631,25 @@ const intentDefinitions: IntentDefinition[] = [
     aliases: [
       "hire",
       "hire abhiram",
-      "available",
-      "is he available",
       "work with abhiram",
       "project with abhiram",
-      "hire abhiram",
       "why should i hire abhiram",
       "can i hire him",
       "hire cheyyan pattumo",
+      "work kodukkamo",
+      "project kodukkamo",
+      "hire cheyyamo",
     ],
     responses: {
       en: [
-        "You should talk to Abhiram if you want someone who understands both tech and creativity.",
-        "Hire him for work that needs logic, visuals, and a human feeling.",
-        "He can turn rough ideas into clean, useful, and visually strong digital work.",
+        "If your project needs both technical thinking and creative presentation, Abhiram could be a good fit.",
+        "You can hire him for websites, interactive experiences, creative frontend work, or practical tech ideas.",
+        "Send him the idea, timeline, and what you need. Clear details make everything easier.",
       ],
       ml: [
-        "Tech-ഉം creativity-ഉം ഒരുമിച്ച് വേണ്ട work ആണെങ്കിൽ Abhiram useful ആകും.",
-        "Rough idea clean and creative output ആക്കാൻ അവൻ try ചെയ്യും.",
-        "Logic വേണം, visuals വേണം, human feeling വേണം. അപ്പോൾ Abhiram-നെ contact ചെയ്യാം.",
+        "Project-ന് tech thinking-ഉം creative presentation-ഉം രണ്ടും വേണമെങ്കിൽ Abhiram നല്ല fit ആയിരിക്കും.",
+        "Websites, interactive experiences, creative frontend work, practical tech ideas—ഇതിലൊക്കെ അവനെ contact ചെയ്യാം.",
+        "Idea, timeline, എന്താണ് വേണ്ടത്—ഇത്രയും clear ആയി അയച്ചാൽ കാര്യങ്ങൾ easy ആവും.",
       ],
     },
     action: { type: "navigate", sectionId: "contact" },
@@ -395,14 +667,14 @@ const intentDefinitions: IntentDefinition[] = [
     ],
     responses: {
       en: [
-        "Abhiram may be open to good opportunities. Contact him and make it official.",
-        "Good work, good people, good ideas. That is the kind of thing Abhiram likes.",
-        "Ask him directly. I'm only the buddy, but I support the plan.",
+        "Abhiram is open to the right opportunities. The best way to confirm is to message him directly.",
+        "Good project, clear idea, decent people—he is always happy to have that conversation.",
+        "Availability can change, so send him a quick message and check.",
       ],
       ml: [
-        "Good opportunity ആണെങ്കിൽ Abhiram സംസാരിക്കാൻ ready ആയിരിക്കാം. Contact ചെയ്യൂ.",
-        "Good work, good people, good ideas. Abhiram-ന് അത് ഇഷ്ടമാണ്.",
-        "Direct ആയി ചോദിക്കൂ. ഞാൻ buddy ആണ്, പക്ഷേ plan support ചെയ്യും.",
+        "നല്ല opportunities ഉണ്ടെങ്കിൽ Abhiram സംസാരിക്കാൻ open ആണ്. Confirm ചെയ്യാൻ direct message അയക്കുന്നതാണ് best.",
+        "Good project, clear idea, decent people—ഇങ്ങനെയാണെങ്കിൽ സംസാരിക്കാൻ അവന് definitely interest ഉണ്ടാകും.",
+        "Availability മാറാം, അതുകൊണ്ട് ഒരു quick message അയച്ച് ചോദിച്ചോളൂ.",
       ],
     },
     action: { type: "navigate", sectionId: "contact" },
@@ -419,17 +691,19 @@ const intentDefinitions: IntentDefinition[] = [
       "where is his resume",
       "resume undo",
       "cv undo",
+      "resume evide",
+      "cv evide",
     ],
     responses: {
       en: [
-        "For the resume, use the portfolio links or contact Abhiram directly. I can guide you, but I cannot hand out files from my tiny pocket.",
-        "Resume question noted. The best move is to check the portfolio links or message Abhiram.",
-        "Ask Abhiram for the latest resume. Fresh resume is better than dusty resume.",
+        "For Abhiram's latest resume, check the portfolio links or contact him directly.",
+        "It is better to ask him for the newest version. Resumes change faster than people expect.",
+        "Need the CV? Send him a message and ask for the latest copy.",
       ],
       ml: [
-        "Resume വേണമെങ്കിൽ portfolio links നോക്കുകയോ Abhiram-നെ contact ചെയ്യുകയോ ചെയ്യാം.",
-        "Latest resume Abhiram-നോട് ചോദിക്കുന്നത് best ആണ്. Fresh file, fresh confidence.",
-        "Resume question noted. ഞാൻ guide ചെയ്യാം, പക്ഷേ pocket-ൽ file ഇല്ല.",
+        "Abhiram-ന്റെ latest resume വേണമെങ്കിൽ portfolio links നോക്കുകയോ direct contact ചെയ്യുകയോ ചെയ്യാം.",
+        "Newest version തന്നെ ചോദിക്കുന്നതാണ് best. Resume ഇടയ്ക്കിടെ update ആകുമല്ലോ.",
+        "CV വേണോ? ഒരു message അയച്ച് latest copy ചോദിച്ചോളൂ.",
       ],
     },
     action: { type: "navigate", sectionId: "contact" },
@@ -448,17 +722,19 @@ const intentDefinitions: IntentDefinition[] = [
       "his education",
       "education parayu",
       "padichath entha",
+      "degree entha",
+      "qualification enthanu",
     ],
     responses: {
       en: [
-        "Abhiram keeps learning through projects, practice, and real problem solving. The portfolio shows that learning in action.",
-        "His education story is practical: learn, build, break, fix, repeat with better taste.",
-        "For exact certificates or academic details, contact Abhiram. I only carry the vibe and the summary.",
+        "Abhiram completed a B.Sc. in Computer Science from the University of Calicut.",
+        "His degree gave him the basics, but most of his growth came from building projects and solving real problems.",
+        "Computer Science is the foundation. The creative and practical side came from everything he kept exploring after that.",
       ],
       ml: [
-        "Abhiram projects-ഉം practice-ഉം real problem solving-ഉം വഴി learn ചെയ്യുന്നു.",
-        "അവന്റെ learning style simple ആണ്: learn, build, break, fix, repeat.",
-        "Exact academic details വേണമെങ്കിൽ Abhiram-നെ contact ചെയ്യൂ. ഞാൻ summary buddy ആണ്.",
+        "Abhiram University of Calicut-ൽ നിന്ന് B.Sc. Computer Science complete ചെയ്തിട്ടുണ്ട്.",
+        "Degree basics കൊടുത്തു. പക്ഷേ projects build ചെയ്തും real problems solve ചെയ്തുമാണ് കൂടുതൽ പഠിച്ചത്.",
+        "Computer Science ആണ് base. Creative side-ും practical side-ും പിന്നെ explore ചെയ്ത് build ചെയ്തെടുത്തതാണ്.",
       ],
     },
   },
@@ -477,17 +753,20 @@ const intentDefinitions: IntentDefinition[] = [
       "landing page",
       "portfolio website",
       "services parayu",
+      "services enthokke",
+      "website cheyyumo",
+      "portfolio cheyyumo",
     ],
     responses: {
       en: [
-        "Abhiram can help with websites, portfolios, UI ideas, interactive pages, creative visuals, and clean frontend work.",
-        "If it needs code, design sense, and a little personality, Abhiram is a good person to talk to.",
-        "He can shape rough digital ideas into something clean, useful, and memorable.",
+        "Abhiram can help with websites, portfolios, UI concepts, interactive pages, creative frontend work, and AI prototypes.",
+        "If you have a rough digital idea, he can help shape it into something clean and usable.",
+        "He is a good fit for work that needs code, visual sense, and a little personality.",
       ],
       ml: [
-        "Websites, portfolios, UI ideas, interactive pages, creative visuals, frontend work എന്നിവയിൽ Abhiram help ചെയ്യാം.",
-        "Code-ഉം design sense-ഉം personality-യും വേണമെങ്കിൽ Abhiram-നോട് സംസാരിക്കാം.",
-        "Rough digital idea clean and useful output ആക്കാൻ അവൻ try ചെയ്യും.",
+        "Websites, portfolios, UI concepts, interactive pages, creative frontend work, AI prototypes—ഇതിലൊക്കെ Abhiram help ചെയ്യാം.",
+        "ഒരു rough digital idea ഉണ്ടെങ്കിൽ അത് clean and usable ആയി shape ചെയ്യാൻ അവൻ സഹായിക്കും.",
+        "Code-ഉം visual sense-ഉം കുറച്ച് personality-യും വേണമെങ്കിൽ അവൻ നല്ല fit ആണ്.",
       ],
     },
     action: { type: "navigate", sectionId: "contact" },
@@ -507,14 +786,14 @@ const intentDefinitions: IntentDefinition[] = [
     ],
     responses: {
       en: [
-        "Abhiram usually starts with the idea, shapes the structure, builds the experience, then polishes the feeling.",
-        "His process is simple: understand, design, build, test, improve. Then stare at pixels until they behave.",
-        "He thinks about both function and feeling, which is why the work does not feel flat.",
+        "Abhiram usually starts by understanding the idea, then plans, builds, tests, and polishes it.",
+        "His process is simple: understand first, build clearly, test properly, and improve what feels off.",
+        "He likes getting the structure right before adding the visual magic on top.",
       ],
       ml: [
-        "Abhiram idea understand ചെയ്ത് structure ആക്കും, experience build ചെയ്യും, പിന്നെ feeling polish ചെയ്യും.",
-        "Process simple ആണ്: understand, design, build, test, improve.",
-        "Function-ഉം feeling-ഉം ഒരുമിച്ച് നോക്കുന്നതാണ് അവന്റെ style.",
+        "ആദ്യം idea ശരിക്കും മനസ്സിലാക്കും. പിന്നെ plan ചെയ്യും, build ചെയ്യും, test ചെയ്യും, അവസാനം polish ചെയ്യും.",
+        "Process simple ആണ്: ആദ്യം understand ചെയ്യുക, clear ആയി build ചെയ്യുക, proper ആയി test ചെയ്യുക, off ആയി തോന്നുന്നത് improve ചെയ്യുക.",
+        "Visual magic add ചെയ്യുന്നതിന് മുമ്പ് structure ശരിയാക്കാനാണ് അവന് ഇഷ്ടം.",
       ],
     },
   },
@@ -533,14 +812,14 @@ const intentDefinitions: IntentDefinition[] = [
     ],
     responses: {
       en: [
-        "Abhiram's strength is mixing technical clarity with creative presentation.",
-        "He cares about how things work and how they feel. That combo is useful.",
-        "He has the patience to solve problems and the taste to make them look less boring.",
+        "Abhiram's biggest strength is combining technical clarity with creative thinking.",
+        "He listens, understands the problem, and tries to make the final result both useful and clean.",
+        "He is patient with problems and picky about presentation—which is a pretty solid combination.",
       ],
       ml: [
-        "Technical clarity-യും creative presentation-ഉം mix ചെയ്യുന്നതാണ് Abhiram-ന്റെ strength.",
-        "Things work ചെയ്യണം, feel ചെയ്യണം. രണ്ടും അവൻ നോക്കും.",
-        "Problem solve ചെയ്യാനുള്ള patience-ഉം output clean ആക്കാനുള്ള taste-ഉം ഉണ്ട്.",
+        "Technical clarity-യും creative thinking-ഉം ഒരുമിച്ച് കൊണ്ടുപോകുന്നതാണ് Abhiram-ന്റെ biggest strength.",
+        "ആദ്യം കേൾക്കും, problem മനസ്സിലാക്കും, പിന്നെ useful-ഉം clean-ഉം ആയ result ഉണ്ടാക്കാൻ നോക്കും.",
+        "Problems-ന്റെ കാര്യത്തിൽ patient ആണ്. Presentation-ന്റെ കാര്യത്തിൽ കുറച്ച് picky-യും. നല്ല combo അല്ലേ?",
       ],
     },
   },
@@ -559,14 +838,14 @@ const intentDefinitions: IntentDefinition[] = [
     ],
     responses: {
       en: [
-        "Check the portfolio links or contact section for Abhiram's profiles.",
-        "GitHub, LinkedIn, and other profiles should be in the portfolio links. I approve profile stalking politely.",
-        "Look around the contact area. That is where serious links usually hide.",
+        "You can find Abhiram's LinkedIn, GitHub, and other profiles through the portfolio links.",
+        "Check the contact area. His main social and professional links should be there.",
+        "Looking for GitHub or LinkedIn? The portfolio links will take you there.",
       ],
       ml: [
-        "Abhiram-ന്റെ profiles portfolio links-ലോ contact section-ലോ കാണാം.",
-        "GitHub, LinkedIn പോലുള്ള links contact area-ൽ നോക്കൂ.",
-        "Profile links usually contact side-ൽ ഒളിച്ചിരിക്കും. Polite ആയി നോക്കാം.",
+        "Abhiram-ന്റെ LinkedIn, GitHub, മറ്റു profiles എല്ലാം portfolio links-ൽ കാണാം.",
+        "Contact area ഒന്ന് നോക്കൂ. Main social and professional links അവിടെ ഉണ്ടാകും.",
+        "GitHub ആണോ LinkedIn ആണോ വേണ്ടത്? Portfolio links വഴി പോകാം.",
       ],
     },
     action: { type: "navigate", sectionId: "contact" },
@@ -583,17 +862,19 @@ const intentDefinitions: IntentDefinition[] = [
       "india",
       "kerala",
       "abhiram evide aanu",
+      "evide aanu",
+      "nattile evide",
     ],
     responses: {
       en: [
-        "Abhiram is based in India. For exact availability or work location, contact him directly.",
-        "He works from India energy: code, ideas, and probably too many browser tabs.",
-        "Location details are best confirmed with Abhiram. I know the portfolio side.",
+        "Abhiram is from Kerala, India.",
+        "He is based in Kerala and works on digital projects from there.",
+        "Kerala is home. For work location or availability, message him directly.",
       ],
       ml: [
-        "Abhiram India side ആണ്. Exact availability അറിയാൻ direct contact ചെയ്യൂ.",
-        "India energy: code, ideas, browser tabs. അതാണ് vibe.",
-        "Location details Abhiram-നോട് confirm ചെയ്യുന്നത് best ആണ്.",
+        "Abhiram Kerala, India-യിൽ നിന്നാണ്.",
+        "Kerala-യിലാണ് base. അവിടെ നിന്നാണ് digital projects work ചെയ്യുന്നത്.",
+        "Kerala ആണ് home. Work location അല്ലെങ്കിൽ availability അറിയാൻ direct message അയക്കൂ.",
       ],
     },
   },
@@ -611,14 +892,14 @@ const intentDefinitions: IntentDefinition[] = [
     ],
     responses: {
       en: [
-        "This portfolio is Abhiram's digital space for showing his work, skills, personality, and creative developer energy.",
-        "You are inside Abhiram's portfolio. I am the emotional tour guide with a round face.",
-        "This site introduces Abhiram through work, motion, interaction, and a little playful drama.",
+        "This portfolio brings together Abhiram's work, skills, experience, and creative side.",
+        "You are looking at Abhiram's digital space—part portfolio, part playground, part personality.",
+        "The site is built to show not just what Abhiram does, but how he thinks and creates.",
       ],
       ml: [
-        "ഇത് Abhiram-ന്റെ portfolio ആണ്. Work, skills, personality, creative developer energy എല്ലാം കാണിക്കാൻ.",
-        "നിങ്ങൾ Abhiram-ന്റെ portfolio-ൽ ആണ്. ഞാൻ round face ഉള്ള emotional tour guide.",
-        "ഈ site Abhiram-നെ work, motion, interaction, playful drama എന്നിവയിലൂടെ introduce ചെയ്യുന്നു.",
+        "Abhiram-ന്റെ work, skills, experience, creative side—ഇതെല്ലാം ഒരുമിച്ച് കാണിക്കുന്നതാണ് ഈ portfolio.",
+        "ഇത് Abhiram-ന്റെ digital space ആണ്. കുറച്ച് portfolio, കുറച്ച് playground, കുറച്ച് personality.",
+        "Abhiram എന്ത് ചെയ്യുന്നു എന്നതുപോലെ തന്നെ എങ്ങനെ think ചെയ്യുന്നു, create ചെയ്യുന്നു എന്നും കാണിക്കാനാണ് ഈ site.",
       ],
     },
   },
@@ -632,19 +913,19 @@ const intentDefinitions: IntentDefinition[] = [
       "what should i ask",
       "how to use you",
       "help commands",
-      "kuku commands",
+      "sreekkuttan commands",
       "what do you know",
     ],
     responses: {
       en: [
-        "Ask me about Abhiram, projects, skills, experience, services, hire, contact, resume, or make me laugh.",
-        "I can guide you through the portfolio, answer simple questions, switch language, sleep, wake, and be mildly dramatic.",
-        "Try saying: tell me about Abhiram, show projects, what are his skills, or how can I contact him.",
+        "You can ask me about Abhiram, projects, skills, experience, services, resume, hiring, or contact.",
+        "I can guide you around the portfolio, switch languages, tell a joke, sleep, wake up, and answer the usual questions.",
+        "Try saying: tell me about Abhiram, show projects, what are his skills, or how can I contact him?",
       ],
       ml: [
-        "Abhiram, projects, skills, experience, services, hire, contact, resume, joke എന്നിവയെ കുറിച്ച് ചോദിക്കാം.",
-        "Portfolio guide ചെയ്യാം, simple questions answer ചെയ്യാം, language switch ചെയ്യാം, sleep and wake ചെയ്യാം.",
-        "Try ചെയ്യൂ: Abhiram ആരാണ്, projects കാണിക്കൂ, skills പറയൂ, contact എങ്ങനെ.",
+        "Abhiram, projects, skills, experience, services, resume, hire, contact—ഇതൊക്കെ എന്നോട് ചോദിക്കാം.",
+        "Portfolio guide ചെയ്യാം, language switch ചെയ്യാം, joke പറയാം, ഉറങ്ങാം, wake ആകാം... basic ആയി busy ആണ്.",
+        "Try ചെയ്യൂ: Abhiram ആരാണ്, projects കാണിക്കൂ, skills എന്തൊക്കെയാണ്, contact എങ്ങനെ ചെയ്യാം?",
       ],
     },
   },
@@ -663,14 +944,14 @@ const intentDefinitions: IntentDefinition[] = [
     ],
     responses: {
       en: [
-        "I am doing great. Round, alert, and emotionally overqualified.",
-        "I have tiny feelings. Mostly about Abhiram's portfolio and whether people click me gently.",
-        "I like Abhiram. He gave me a face and responsibilities. Very serious career move.",
+        "I'm doing good. Just hanging around here and waiting for someone to talk to me.",
+        "Happy enough. I have a nice face, a good job, and no deadlines.",
+        "Do I have feelings? A few. Mostly when people call me Sreekkuttan.",
       ],
       ml: [
-        "ഞാൻ great ആണ്. Round, alert, emotionally overqualified.",
-        "എനിക്ക് tiny feelings ഉണ്ട്. Mostly portfolio-യും gentle clicks-ഉം കുറിച്ച്.",
-        "Abhiram-നെ ഇഷ്ടമാണ്. Face-ഉം responsibilities-ഉം തന്നല്ലോ.",
+        "ഞാൻ okay ആണ്. ഇവിടെ ചുമ്മാ ഇരുന്ന് ആരെങ്കിലും സംസാരിക്കാൻ വരുമോന്ന് നോക്കുന്നു.",
+        "Happy ആണ്. നല്ല face ഉണ്ട്, ജോലി ഉണ്ട്, deadline ഒന്നുമില്ല.",
+        "Feelings ഉണ്ടോന്നോ? കുറച്ചൊക്കെ ഉണ്ട്. പ്രത്യേകിച്ച് ആരെങ്കിലും ശ്രീക്കുട്ടൻ എന്ന് വിളിച്ചാൽ.",
       ],
     },
   },
@@ -688,14 +969,14 @@ const intentDefinitions: IntentDefinition[] = [
     ],
     responses: {
       en: [
-        "Start small. Tiny progress is still progress, and I am professionally tiny.",
-        "Do one clear thing now. Momentum likes simple beginnings.",
-        "You do not need perfect energy. You only need the next honest step.",
+        "Do one small thing now. You don't need to finish everything today.",
+        "You don't need perfect motivation. Just start with the next clear step.",
+        "Slow progress still counts. Keep moving, even if it is only a little.",
       ],
       ml: [
-        "Small ആയി start ചെയ്യൂ. Tiny progress പോലും progress ആണ്. ഞാൻ proof ആണ്.",
-        "ഒരു clear thing ഇപ്പോൾ ചെയ്യൂ. Momentum simple beginnings ഇഷ്ടപ്പെടും.",
-        "Perfect energy വേണ്ട. Next honest step മതി.",
+        "ഇപ്പോൾ ഒരു ചെറിയ കാര്യം ചെയ്യൂ. എല്ലാം ഇന്നുതന്നെ finish ചെയ്യേണ്ട കാര്യമില്ല.",
+        "Perfect motivation വരാൻ wait ചെയ്യണ്ട. Next clear step എടുത്താൽ മതി.",
+        "Slow progress ആയാലും progress തന്നെയാണ്. കുറച്ചായാലും മുന്നോട്ട് പോവൂ.",
       ],
     },
   },
@@ -717,14 +998,14 @@ const intentDefinitions: IntentDefinition[] = [
     ],
     responses: {
       en: [
-        "Mm-hmm. I am listening with my whole round existence.",
-        "Okay. Tiny nod from Abhiram mode.",
-        "I hear you. Continue the thought, I am emotionally parked here.",
+        "Mm-hmm, I'm listening. Go on.",
+        "Okay okay, got it.",
+        "Yeah, I'm here. Continue.",
       ],
       ml: [
-        "Mm-hmm. എന്റെ whole round existence കൊണ്ട് ഞാൻ കേൾക്കുന്നു.",
-        "Okay. Abhiram mode tiny nod.",
-        "ഞാൻ കേൾക്കുന്നുണ്ട്. Thought continue ചെയ്യൂ.",
+        "മ്മ്... ഞാൻ കേൾക്കുന്നുണ്ട്. പറയൂ.",
+        "ഓക്കേ ഓക്കേ, മനസ്സിലായി.",
+        "ആ, ഞാൻ ഇവിടെ തന്നെ ഉണ്ട്. Continue ചെയ്യൂ.",
       ],
     },
   },
@@ -737,20 +1018,20 @@ const intentDefinitions: IntentDefinition[] = [
       "see you",
       "see you later",
       "talk later",
-      "bye kuku",
+      "bye sreekkuttan",
       "good night",
       "shubharathri",
     ],
     responses: {
       en: [
-        "Bye. Come back gently. I will be here pretending I was not waiting.",
-        "See you later. Abhiram mode will stay round and emotionally available.",
-        "Goodbye. May your tabs be organized and your work feel light.",
+        "Bye! Come back when you have another question.",
+        "See you. I'll be right here, doing absolutely nothing.",
+        "Goodbye! Take care—and maybe close a few browser tabs.",
       ],
       ml: [
-        "Bye. പിന്നെ വരൂ. ഞാൻ wait ചെയ്തില്ലെന്ന് pretend ചെയ്യും.",
-        "See you later. Abhiram mode ഇവിടെ round and emotionally available ആയി ഇരിക്കും.",
-        "Good night. Work light ആകട്ടെ, tabs കുറയട്ടെ.",
+        "ബൈ! വേറെ എന്തെങ്കിലും ചോദിക്കാനുണ്ടെങ്കിൽ പിന്നെ വരണേ.",
+        "ശരി, കാണാം. ഞാൻ ഇവിടെ ഒന്നും ചെയ്യാതെ ഇരിക്കുന്നുണ്ടാകും.",
+        "ബൈ ബൈ! Take care... പിന്നെ browser tabs കുറച്ചൊന്ന് close ചെയ്യണേ.",
       ],
     },
   },
@@ -774,16 +1055,16 @@ const intentDefinitions: IntentDefinition[] = [
     ],
     responses: {
       en: [
-        "My job title is buddy. My salary is attention.",
-        "I'm not just a white orb. I'm a premium emotional circle.",
-        "I blink, I think, I support. Basically startup material.",
-        "Small body, big feelings, zero taxes.",
+        "My job is to talk. My salary is attention. So far, business is okay.",
+        "I'm small, round, and somehow employed. Life works in mysterious ways.",
+        "I don't have bugs. I have unexpected personality features.",
+        "I tried to become a full-stack developer, but I'm only one round component.",
       ],
       ml: [
-        "എന്റെ job title buddy ആണ്. Salary attention ആണ്.",
-        "ഞാൻ blink ചെയ്യും, think ചെയ്യും, support ചെയ്യും. Basically startup material.",
-        "ചെറിയ body, വലിയ feelings, tax ഒന്നുമില്ല.",
-        "Round ആണ്, പക്ഷേ confidence full screen ആണ്.",
+        "എന്റെ ജോലി സംസാരിക്കലാണ്. Salary attention. ഇപ്പോൾ business okay ആണ്.",
+        "ചെറിയതാണ്, round ആണ്, എന്നിട്ടും ജോലി കിട്ടി. Life അല്ലേ.",
+        "എനിക്ക് bugs ഒന്നുമില്ല. Unexpected personality features മാത്രം.",
+        "Full-stack developer ആകാൻ നോക്കിയതാണ്... പക്ഷേ ഞാൻ ഒരു round component ആയി പോയി.",
       ],
     },
   },
@@ -802,14 +1083,14 @@ const intentDefinitions: IntentDefinition[] = [
     ],
     responses: {
       en: [
-        "Aww, thank you. My round confidence just increased.",
-        "Careful. Compliments make me more powerful.",
-        "Thank you. I will save that in my emotional hard drive.",
+        "Aww, thank you. That made my whole face happier.",
+        "Careful with compliments. I get confident very quickly.",
+        "Thanks! I'm saving that one for a bad day.",
       ],
       ml: [
-        "Aww, thanks. എന്റെ round confidence കൂടിപ്പോയി.",
-        "Compliment കിട്ടിയാൽ ഞാൻ കൂടുതൽ powerful ആകും.",
-        "Thank you. അത് ഞാൻ emotional hard drive-ൽ save ചെയ്തു.",
+        "അയ്യേ, thank you! എന്റെ face മുഴുവൻ happy ആയി.",
+        "Compliment ഒക്കെ സൂക്ഷിച്ച് പറയണം. എനിക്ക് പെട്ടെന്ന് confidence കൂടും.",
+        "Thanks! ഒരു bad day വന്നാൽ ഓർക്കാൻ ഇത് save ചെയ്തു.",
       ],
     },
   },
@@ -834,16 +1115,16 @@ const intentDefinitions: IntentDefinition[] = [
     ],
     responses: {
       en: [
-        "Hey, breathe. Even loading screens take time. You're allowed to take time too.",
-        "I'm here with you. Tiny buddy, full support.",
-        "Bad moments are not the final version of you.",
-        "Take it slowly. Smooth things need rendering time.",
+        "Hey, take a breath. You don't have to solve everything right now.",
+        "I'm here. Go slowly, and deal with just one thing at a time.",
+        "A bad moment is not the whole story. Give yourself a little space.",
+        "Rest if you need to. Starting again later is completely okay.",
       ],
       ml: [
-        "Hey, breathe. Loading screen പോലും time എടുക്കും. നിനക്കും time എടുക്കാം.",
-        "ഞാൻ ഇവിടെ ഉണ്ട്. Tiny buddy, full support.",
-        "Bad moment നിന്റെ final version അല്ല.",
-        "Slow ആയി പോകാം. Smooth things render ആകാൻ time എടുക്കും.",
+        "Hey, ഒന്ന് breathe ചെയ്യൂ. എല്ലാം ഇപ്പോൾ തന്നെ solve ചെയ്യേണ്ടതില്ല.",
+        "ഞാൻ ഇവിടെ ഉണ്ട്. Slow ആയി, ഒരു സമയം ഒരു കാര്യം മാത്രം നോക്കാം.",
+        "ഒരു bad moment കൊണ്ട് മുഴുവൻ story decide ആകില്ല. നിനക്ക് കുറച്ച് space കൊടുക്കൂ.",
+        "Rest വേണമെങ്കിൽ rest എടുക്കൂ. പിന്നെ വീണ്ടും start ചെയ്യുന്നതിൽ ഒരു പ്രശ്നവും ഇല്ല.",
       ],
     },
   },
@@ -854,8 +1135,6 @@ const intentDefinitions: IntentDefinition[] = [
       "i am confused",
       "confused",
       "help me",
-      "what should i ask",
-      "what can you do",
       "guide me",
       "i don't understand",
       "i dont understand",
@@ -864,14 +1143,14 @@ const intentDefinitions: IntentDefinition[] = [
     ],
     responses: {
       en: [
-        "Confused? Good. That means the brain is working. Let's go one step at a time.",
-        "Tell me what part is confusing. My tiny brain is online.",
-        "No pressure. We can slow it down.",
+        "No problem. Tell me which part is confusing, and we'll take it one step at a time.",
+        "Okay, let's slow it down. What exactly are you stuck on?",
+        "You don't have to understand everything at once. Start with the part that feels unclear.",
       ],
       ml: [
-        "Confused ആണോ? പ്രശ്നമില്ല. Brain work ചെയ്യുന്നുണ്ട് എന്നാണ് meaning.",
-        "ഏത് part ആണ് confuse എന്ന് പറയൂ. എന്റെ tiny brain online ആണ്.",
-        "No pressure. നമുക്ക് slow ആയി നോക്കാം.",
+        "പ്രശ്നമില്ല. ഏത് part ആണ് confuse ആയത് എന്ന് പറയൂ, നമുക്ക് step by step നോക്കാം.",
+        "ഓക്കേ, ഒന്ന് slow ആക്കാം. Exactly എവിടെയാണ് stuck ആയത്?",
+        "എല്ലാം ഒരുമിച്ച് മനസ്സിലാക്കേണ്ടതില്ല. Clear അല്ലാത്ത part മുതൽ start ചെയ്യാം.",
       ],
     },
   },
@@ -885,20 +1164,20 @@ const intentDefinitions: IntentDefinition[] = [
       "sleepy",
       "take a nap",
       "nap",
-      "sleep kuku",
+      "sleep sreekkuttan",
       "urangikko",
       "ഉറങ്ങിക്കോ",
     ],
     responses: {
       en: [
-        "Okay, I'll take a tiny nap. Wake me gently.",
-        "Sleep mode. I'll be round and silent for a bit.",
-        "Going sleepy. Keep the lights soft.",
+        "Okay, I'm going to sleep. Wake me up when you need me.",
+        "Fine, tiny nap time. Don't forget me here.",
+        "Sleep mode on. I'll be quiet now... probably.",
       ],
       ml: [
-        "ശരി, ഞാൻ ചെറിയ nap എടുക്കാം. Gentle ആയി വിളിക്കണം.",
-        "Sleep mode പോകുന്നു. ഞാൻ കുറച്ച് round and silent ആയിരിക്കും.",
-        "ഉറങ്ങാൻ പോകുന്നു. Lights soft ആക്കി വെക്കണേ.",
+        "ശരി, ഞാൻ ഉറങ്ങാൻ പോകുന്നു. ആവശ്യം വന്നാൽ വിളിച്ചാൽ മതി.",
+        "ഓക്കേ, ചെറിയൊരു nap എടുക്കാം. എന്നെ ഇവിടെ മറക്കല്ലേ.",
+        "Sleep mode on. ഇനി ഞാൻ quiet ആയിരിക്കും... probably.",
       ],
     },
   },
@@ -914,20 +1193,20 @@ const intentDefinitions: IntentDefinition[] = [
       "make up",
       "awake",
       "get up",
-      "wake kuku",
+      "wake sreekkuttan",
       "ezhunnelkku",
       "എഴുന്നേൽക്കൂ",
     ],
     responses: {
       en: [
-        "I'm awake. Mostly.",
-        "Okay okay, I'm up. Tiny brain online.",
-        "Waking up with premium buddy energy.",
+        "Okay okay, I'm awake! What happened?",
+        "I'm up. Give my tiny brain a second.",
+        "Awake and ready. What do you need?",
       ],
       ml: [
-        "ഞാൻ എഴുന്നേറ്റു. Mostly.",
-        "Okay okay, ഞാൻ wake ആയി. Tiny brain online.",
-        "Premium buddy energy-യോടെ wake ആയി.",
+        "ഓക്കേ ഓക്കേ, എഴുന്നേറ്റു! എന്താ സംഭവിച്ചത്?",
+        "എഴുന്നേറ്റു. എന്റെ കുഞ്ഞ് brain ഒന്ന് load ആവട്ടെ.",
+        "Wake ആയി, ready ആണ്. എന്താ വേണ്ടത്?",
       ],
     },
   },
@@ -944,14 +1223,14 @@ const intentDefinitions: IntentDefinition[] = [
     ],
     responses: {
       en: [
-        "Yes, I'm listening. My tiny brain is fully online.",
-        "I can hear you. Emotionally and technically.",
-        "Listening mode active. Say the thing.",
+        "Yes, I'm listening. Tell me.",
+        "I can hear you. Go ahead.",
+        "Yep, listening mode is on. Say it.",
       ],
       ml: [
-        "അതെ, ഞാൻ കേൾക്കുന്നുണ്ട്. Tiny brain fully online.",
-        "ഞാൻ കേൾക്കുന്നു. Technically-യും emotionally-യും.",
-        "Listening mode on. പറയൂ.",
+        "അതെ, ഞാൻ കേൾക്കുന്നുണ്ട്. പറയൂ.",
+        "കേൾക്കാം. നീ പറഞ്ഞോളൂ.",
+        "ആ, listening mode on ആണ്. പറയൂ എന്താണെന്ന്.",
       ],
     },
   },
@@ -968,8 +1247,12 @@ const intentDefinitions: IntentDefinition[] = [
       "malayalam samsariku",
     ],
     responses: {
-      en: ["Malayalam mode on. ഇനി ഞാൻ മലയാളത്തിൽ try ചെയ്യാം."],
-      ml: ["Malayalam mode on. ഇനി ഞാൻ മലയാളത്തിൽ try ചെയ്യാം."],
+      en: [
+        "Malayalam mode on. ഇനി മലയാളത്തിൽ സംസാരിക്കാം.",
+      ],
+      ml: [
+        "Malayalam mode on. ഇനി മലയാളത്തിൽ സംസാരിക്കാം.",
+      ],
     },
   },
   {
@@ -983,8 +1266,12 @@ const intentDefinitions: IntentDefinition[] = [
       "back to english",
     ],
     responses: {
-      en: ["English mode on. I'm back with smooth buddy energy."],
-      ml: ["English mode on. I'm back with smooth buddy energy."],
+      en: [
+        "English mode on. Okay, let's continue in English.",
+      ],
+      ml: [
+        "English mode on. ഇനി English-ൽ continue ചെയ്യാം.",
+      ],
     },
   },
   {
@@ -993,32 +1280,130 @@ const intentDefinitions: IntentDefinition[] = [
     aliases: [],
     responses: {
       en: [
-        "I heard you, but my tiny brain dropped the sentence. Try asking about Abhiram, projects, skills, hire, or contact.",
-        "That one flew over my round head. Say it again slowly.",
-        "I caught the sound, not the meaning. One more try?",
+        "I heard you, but I didn't quite get that. Can you say it once more?",
+        "That one slipped past me. Try saying it a little differently.",
+        "I caught the words, but not the meaning. One more try?",
       ],
       ml: [
-        "ഞാൻ കേട്ടു, പക്ഷേ എന്റെ tiny brain sentence drop ചെയ്തു. Abhiram, projects, skills, contact എന്നൊക്കെ ചോദിച്ചു നോക്കൂ.",
-        "അത് എന്റെ round head-ന്റെ മുകളിലൂടെ പോയി. ഒന്ന് slowly പറയാമോ?",
-        "Sound കിട്ടി, meaning കിട്ടിയില്ല. ഒരിക്കൽ കൂടി try ചെയ്യൂ.",
+        "കേട്ടു... പക്ഷേ ശരിക്ക് മനസ്സിലായില്ല. ഒന്ന് കൂടി പറയാമോ?",
+        "അത് എനിക്ക് പിടികിട്ടിയില്ല. വേറെ രീതിയിൽ ഒന്ന് പറഞ്ഞുനോക്കൂ.",
+        "Words കിട്ടി, meaning കിട്ടിയില്ല. ഒരിക്കൽ കൂടി try ചെയ്യാമോ?",
       ],
     },
   },
 ];
 
 const firstGreeting: Record<KukuLanguage, string> = {
-  en: "Hey, I'm Abhiram K in tiny interactive character mode. Small body, big emotions. Ask me about my work, projects, skills, or contact.",
-  ml: "ഹായ്, ഞാൻ Abhiram K. Tiny interactive character mode ആണ്. Work, projects, skills, contact എന്നിവയെ കുറിച്ച് ചോദിക്കാം.",
+  en: `Hey! I'm ${characterName} in tiny interactive mode. Ask me about my work, projects, skills, experience, or contact.`,
+  ml: `ഹായ്! ഞാൻ ${characterName}. Tiny interactive mode ആണ്. Work, projects, skills, experience, contact എന്നിവയെ കുറിച്ച് ചോദിച്ചോളൂ.`,
+};
+
+const repeatNicknameResponses: Record<KukuLanguage, string[]> = {
+  en: [
+    `${characterNickname} again? Okay okay, you clearly like that name.`,
+    "You really enjoy using the private nickname, don't you?",
+    `Yes yes, ${characterNickname} heard you. Happy now?`,
+  ],
+  ml: [
+    "വീണ്ടും ശ്രീക്കുട്ടൻ ആണോ? ഓക്കേ ഓക്കേ, നിനക്ക് ആ പേര് നല്ല ഇഷ്ടമാണല്ലേ.",
+    "Private nickname വിളിക്കുന്നത് നിനക്ക് നല്ല fun ആണല്ലേ?",
+    "ആ ആ, ശ്രീക്കുട്ടൻ കേട്ടു. ഇപ്പോൾ happy ആയോ?",
+  ],
+};
+
+const sleepyWakeResponses: Record<KukuLanguage, string[]> = {
+  en: [
+    "I was almost asleep... but okay, I'm awake now.",
+    "Ah, you woke me up. Give me one second.",
+    "Back online. What did I miss?",
+  ],
+  ml: [
+    "ഞാൻ almost ഉറങ്ങിയതായിരുന്നു... സാരമില്ല, ഇപ്പോൾ wake ആയി.",
+    "അയ്യേ, വിളിച്ച് എഴുന്നേൽപ്പിച്ചല്ലോ. ഒരു second.",
+    "Back online. ഞാൻ എന്താ miss ചെയ്തത്?",
+  ],
+};
+
+const repeatTopicOpeners: Record<KukuLanguage, string[]> = {
+  en: [
+    "Same topic, different angle.",
+    "You asked that again, so here is the shorter version.",
+    "Tiny recap mode.",
+  ],
+  ml: [
+    "അതേ topic വീണ്ടും. വേറെ angle-ൽ പറയാം.",
+    "വീണ്ടും ചോദിച്ചതിനാൽ short version പറയാം.",
+    "Tiny recap mode.",
+  ],
+};
+
+const followUpPrompts: Partial<Record<KukuIntent, Record<KukuLanguage, string[]>>> = {
+  visitorRecruiter: {
+    en: ["Want the experience section or project proof first?"],
+    ml: ["Experience section ആണോ project proof ആണോ ആദ്യം കാണണം?"],
+  },
+  visitorClient: {
+    en: ["Want to contact him or see project examples first?"],
+    ml: ["Contact ചെയ്യണോ, project examples ആദ്യം കാണണോ?"],
+  },
+  visitorDeveloper: {
+    en: ["Want projects, GitHub, or tech stack details?"],
+    ml: ["Projects, GitHub, tech stack details ഇതിൽ ഏത് വേണം?"],
+  },
+  visitorFriend: {
+    en: ["Careful, friend mode makes me more dramatic."],
+    ml: ["Careful, friend mode ആണെങ്കിൽ ഞാൻ കുറച്ച് dramatic ആവും."],
+  },
+  aboutAbhiram: {
+    en: ["Want to see his projects next?", "I can tell you about his skills or experience too."],
+    ml: ["അവന്റെ projects കാണണോ?", "Skills അല്ലെങ്കിൽ experience കൂടി പറയാം."],
+  },
+  projects: {
+    en: ["Want the AI side or the web side first?", "I can also tell you which tools he used."],
+    ml: ["AI side ആണോ web side ആണോ ആദ്യം വേണ്ടത്?", "Use ചെയ്ത tools കൂടി പറയാം."],
+  },
+  skills: {
+    en: ["Want to know where he used those skills?", "I can connect them to his projects too."],
+    ml: ["ഈ skills എവിടെയാണ് use ചെയ്തത് എന്ന് അറിയണോ?", "Projects-മായി connect ചെയ്ത് പറയാം."],
+  },
+  aiProjects: {
+    en: ["Want me to take you to the project section?", "I can explain the Python and OpenCV side too."],
+    ml: ["Project section-ലേക്ക് കൊണ്ടുപോകട്ടേ?", "Python, OpenCV side കൂടി explain ചെയ്യാം."],
+  },
+  softwareSupport: {
+    en: ["Want to see his experience section?", "That support background makes his work more practical."],
+    ml: ["Experience section കാണണോ?", "ആ support background കൊണ്ടാണ് work കൂടുതൽ practical ആകുന്നത്."],
+  },
+  experience: {
+    en: ["Want to know more about his software support work?", "I can take you to the experience section too."],
+    ml: ["Software support work കുറിച്ച് കൂടി അറിയണോ?", "Experience section-ലേക്ക് പോകാം."],
+  },
+  contact: {
+    en: ["For work, send a short message with the idea, timeline, and what you need."],
+    ml: ["Work കാര്യമാണെങ്കിൽ idea, timeline, എന്താണ് വേണ്ടത് എന്ന് short ആയി അയച്ചാൽ മതി."],
+  },
+  hire: {
+    en: ["The next step is simple—send him the project details."],
+    ml: ["Next step simple ആണ്—project details അയച്ചോളൂ."],
+  },
+  services: {
+    en: ["Want to hear about websites, AI projects, or creative work first?"],
+    ml: ["Websites, AI projects, creative work—ഇതിൽ ആദ്യം ഏത് പറയണം?"],
+  },
+  capabilities: {
+    en: ["Try saying: show projects, contact Abhiram, or tell me a joke."],
+    ml: ["Try ചെയ്യൂ: projects കാണിക്കൂ, Abhiram-നെ contact ചെയ്യണം, അല്ലെങ്കിൽ joke പറയൂ."],
+  },
 };
 
 const unsupportedBrowserResponses: Record<KukuLanguage, string> = {
-  en: "Voice is not supported in this browser. Chrome will understand me better.",
-  ml: "ഈ browser voice support ചെയ്യുന്നില്ല. Chrome ആയാൽ ഞാൻ കുറച്ച് better ആയി കേൾക്കും.",
+  en: "Voice isn't working in this browser. Try opening the site in Chrome.",
+  ml: "ഈ browser-ൽ voice work ചെയ്യുന്നില്ല. Chrome-ൽ open ചെയ്ത് നോക്കൂ.",
 };
 
 const microphoneBlockedResponses: Record<KukuLanguage, string> = {
-  en: "Microphone permission is blocked. I can't hear you yet, but I'm still emotionally available.",
-  ml: "Microphone permission blocked ആണ്. ഞാൻ കേൾക്കാൻ പറ്റില്ല, പക്ഷേ emotional support ഇവിടെ ഉണ്ട്.",
+  en: "Microphone permission is blocked, so I can't hear you yet. Allow it and try again.",
+  ml: "Microphone permission block ആയിട്ടുണ്ട്, അതുകൊണ്ട് ഇപ്പോൾ കേൾക്കാൻ പറ്റില്ല. Allow ചെയ്ത് വീണ്ടും try ചെയ്യൂ.",
 };
 
 const normalizeVoiceText = (text: string) =>
@@ -1026,9 +1411,62 @@ const normalizeVoiceText = (text: string) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
     .replace(/\s+/g, " ")
     .trim();
+
+const containsMalayalamScript = (text: string) => /[\u0D00-\u0D7F]/u.test(text);
+
+const hasManglishCue = (normalizedText: string) => {
+  const manglishWords = [
+    "aanu",
+    "aara",
+    "aaran",
+    "aano",
+    "entha",
+    "enthanu",
+    "enth",
+    "engane",
+    "evide",
+    "venam",
+    "parayu",
+    "parayoo",
+    "kanikku",
+    "kaaniku",
+    "cheyyu",
+    "cheyyumo",
+    "cheyyan",
+    "pattumo",
+    "undo",
+    "njan",
+    "nee",
+    "ninte",
+    "padichath",
+    "samsariku",
+    "malayalam",
+    "malayalathil",
+  ];
+  const words = normalizedText.split(" ").filter(Boolean);
+
+  return manglishWords.some((word) => words.includes(word));
+};
+
+const getLanguageForTranscript = (
+  transcript: string,
+  intent: KukuIntent,
+  currentLanguage: KukuLanguage,
+): KukuLanguage => {
+  if (intent === "switchMalayalam") return "ml";
+  if (intent === "switchEnglish") return "en";
+
+  const normalizedText = normalizeVoiceText(transcript);
+
+  if (containsMalayalamScript(transcript) || hasManglishCue(normalizedText)) {
+    return "ml";
+  }
+
+  return currentLanguage;
+};
 
 const isCloseVoiceWord = (spokenWord: string, expectedWord: string) => {
   if (spokenWord === expectedWord) return true;
@@ -1065,10 +1503,19 @@ const isCloseVoiceWord = (spokenWord: string, expectedWord: string) => {
 const getAliasScore = (normalizedText: string, spokenWords: string[], alias: string) => {
   const normalizedAlias = normalizeVoiceText(alias);
   const aliasWords = normalizedAlias.split(" ").filter(Boolean);
+  const isShortSingleWordAlias =
+    aliasWords.length === 1 && normalizedAlias.length < 4;
 
   if (!normalizedAlias || aliasWords.length === 0) return 0;
   if (normalizedText === normalizedAlias) return 100 + aliasWords.length;
-  if (normalizedText.includes(normalizedAlias)) return 80 + aliasWords.length;
+  if (
+    !isShortSingleWordAlias &&
+    (aliasWords.length > 1
+      ? normalizedText.includes(normalizedAlias)
+      : spokenWords.includes(normalizedAlias))
+  ) {
+    return 80 + aliasWords.length;
+  }
 
   const matchedWords = aliasWords.filter((aliasWord) =>
     spokenWords.some((spokenWord) => isCloseVoiceWord(spokenWord, aliasWord)),
@@ -1086,6 +1533,8 @@ const findVoiceIntent = (text: string): IntentDefinition | null => {
   let bestScore = 0;
 
   for (const intentDefinition of intentDefinitions) {
+    if (intentDefinition.aliases.length === 0) continue;
+
     const intentScore = Math.max(
       ...intentDefinition.aliases.map((alias) =>
         getAliasScore(normalizedText, spokenWords, alias),
@@ -1104,10 +1553,17 @@ const findVoiceIntent = (text: string): IntentDefinition | null => {
 const getExpressionForIntent = (intent: KukuIntent): Expression => {
   const expressionMap: Record<KukuIntent, Expression> = {
     greeting: "playful",
+    visitorRecruiter: "speaking",
+    visitorClient: "speaking",
+    visitorDeveloper: "thinking",
+    visitorFriend: "playful",
+    nicknameStretchReaction: "playful",
     nicknameReaction: "playful",
     whoIsKuku: "playful",
     aboutAbhiram: "speaking",
     skills: "thinking",
+    aiProjects: "thinking",
+    softwareSupport: "speaking",
     projects: "speaking",
     experience: "thinking",
     creativeDeveloper: "thinking",
@@ -1142,6 +1598,79 @@ const getExpressionForIntent = (intent: KukuIntent): Expression => {
   return expressionMap[intent];
 };
 
+const getSpeechToneForIntent = (intent: KukuIntent): SpeechTone => {
+  if (intent === "nicknameReaction" || intent === "nicknameStretchReaction") {
+    return "excited";
+  }
+
+  if (intent === "joke" || intent === "compliment" || intent === "personal") {
+    return "playful";
+  }
+
+  if (intent === "visitorFriend") {
+    return "playful";
+  }
+
+  if (intent === "visitorRecruiter" || intent === "visitorClient") {
+    return "neutral";
+  }
+
+  if (
+    intent === "skills" ||
+    intent === "aiProjects" ||
+    intent === "visitorDeveloper" ||
+    intent === "education" ||
+    intent === "workflow" ||
+    intent === "unknown"
+  ) {
+    return "thinking";
+  }
+
+  if (intent === "emotionalSupport" || intent === "goodbye") {
+    return "soft";
+  }
+
+  if (intent === "sleep") {
+    return "sleepy";
+  }
+
+  return "neutral";
+};
+
+const getSpeechStyle = (tone: SpeechTone, language: KukuLanguage) => {
+  const styleMap: Record<
+    SpeechTone,
+    Record<KukuLanguage, { rate: number; pitch: number }>
+  > = {
+    neutral: {
+      en: { rate: 0.91, pitch: 1.07 },
+      ml: { rate: 0.86, pitch: 1.03 },
+    },
+    playful: {
+      en: { rate: 0.96, pitch: 1.14 },
+      ml: { rate: 0.9, pitch: 1.08 },
+    },
+    excited: {
+      en: { rate: 1, pitch: 1.18 },
+      ml: { rate: 0.93, pitch: 1.1 },
+    },
+    thinking: {
+      en: { rate: 0.84, pitch: 1.01 },
+      ml: { rate: 0.8, pitch: 0.99 },
+    },
+    soft: {
+      en: { rate: 0.86, pitch: 1.04 },
+      ml: { rate: 0.82, pitch: 1.01 },
+    },
+    sleepy: {
+      en: { rate: 0.78, pitch: 0.96 },
+      ml: { rate: 0.76, pitch: 0.96 },
+    },
+  };
+
+  return styleMap[tone][language];
+};
+
 const splitSpeechIntoChunks = (text: string): string[] => {
   if (text.length < 140) return [text];
 
@@ -1153,15 +1682,132 @@ const splitSpeechIntoChunks = (text: string): string[] => {
   return chunks.length > 0 ? chunks : [text];
 };
 
-const pickResponse = (responses: string[], previousResponse?: string) => {
+const pickResponse = (responses: string[], recentResponses: string[] = []) => {
   if (responses.length === 1) return responses[0];
 
   const freshResponses = responses.filter(
-    (response) => response !== previousResponse,
+    (response) => !recentResponses.includes(response),
   );
   const responsePool = freshResponses.length > 0 ? freshResponses : responses;
 
   return responsePool[Math.floor(Math.random() * responsePool.length)];
+};
+
+const createInitialMemory = (): CharacterMemory => ({
+  hasHeardNickname: false,
+  interactionCount: 0,
+  unknownCount: 0,
+  repeatCount: 0,
+  visitorType: "visitor",
+  mood: "neutral",
+  lastTopic: null,
+  recentIntents: [],
+  recentResponses: [],
+});
+
+const rememberLimited = <T,>(items: T[], nextItem: T) =>
+  [nextItem, ...items.filter((item) => item !== nextItem)].slice(0, recentMemoryLimit);
+
+const buildResponseWithFollowUp = (
+  intent: KukuIntent,
+  response: string,
+  language: KukuLanguage,
+  memory: CharacterMemory,
+) => {
+  const prompts = followUpPrompts[intent]?.[language];
+
+  if (!prompts || prompts.length === 0) return response;
+  if (memory.interactionCount < 1) return response;
+  if (memory.recentIntents[0] === intent) return response;
+
+  return `${response} ${pickResponse(prompts, memory.recentResponses)}`;
+};
+
+const getVisitorTypeForIntent = (intent: KukuIntent): VisitorType | null => {
+  const visitorMap: Partial<Record<KukuIntent, VisitorType>> = {
+    visitorRecruiter: "recruiter",
+    visitorClient: "client",
+    visitorDeveloper: "developer",
+    visitorFriend: "friend",
+  };
+
+  return visitorMap[intent] ?? null;
+};
+
+const getMoodForIntent = (intent: KukuIntent, memory: CharacterMemory): CharacterMood => {
+  if (intent === "nicknameReaction" || intent === "nicknameStretchReaction") {
+    return "familiar";
+  }
+
+  if (intent === "visitorRecruiter" || intent === "hire" || intent === "contact") {
+    return "professional";
+  }
+
+  if (intent === "visitorClient" || intent === "visitorDeveloper") {
+    return "professional";
+  }
+
+  if (intent === "visitorFriend" || intent === "joke" || intent === "compliment") {
+    return "playful";
+  }
+
+  if (intent === "emotionalSupport" || intent === "motivation") {
+    return "supportive";
+  }
+
+  return memory.mood;
+};
+
+const buildMoodAwareResponse = (
+  response: string,
+  language: KukuLanguage,
+  memory: CharacterMemory,
+) => {
+  if (memory.visitorType === "recruiter" && memory.mood === "professional") {
+    return `${response} ${
+      language === "ml"
+        ? "Recruiter angle-ൽ പറഞ്ഞാൽ, experience and project proof ആണ് best."
+        : "Recruiter angle: experience and project proof matter most."
+    }`;
+  }
+
+  if (memory.visitorType === "client" && memory.mood === "professional") {
+    return `${response} ${
+      language === "ml"
+        ? "Client angle-ൽ, clear brief അയച്ചാൽ കാര്യങ്ങൾ smooth ആവും."
+        : "Client angle: a clear brief will make the next step smooth."
+    }`;
+  }
+
+  if (memory.mood === "familiar") {
+    return `${response} ${
+      language === "ml"
+        ? "ഇനി close-circle tone on ആണ്."
+        : "Close-circle tone is on now."
+    }`;
+  }
+
+  return response;
+};
+
+const debugVoice = (label: string, details: Record<string, unknown>) => {
+  if (!import.meta.env.DEV) return;
+  console.log(`[voice:${label}]`, details);
+};
+
+const isLikelySpeechEcho = (normalizedTranscript: string, normalizedLastResponse: string) => {
+  if (!normalizedTranscript || !normalizedLastResponse) return false;
+
+  const transcriptWords = normalizedTranscript.split(" ").filter(Boolean);
+
+  if (transcriptWords.length < 4 && normalizedTranscript.length < 24) {
+    return false;
+  }
+
+  return (
+    normalizedLastResponse.includes(normalizedTranscript) ||
+    normalizedTranscript.includes(normalizedLastResponse.slice(0, 80))
+  );
 };
 
 const getBestVoice = (language: KukuLanguage): SpeechSynthesisVoice | null => {
@@ -1246,6 +1892,8 @@ export const InteractiveCharacter: React.FC = () => {
   const expressionRef = useRef<Expression>("soft");
   const isSpeakingRef = useRef(false);
   const kukuLanguageRef = useRef<KukuLanguage>("en");
+  const memoryRef = useRef<CharacterMemory>(createInitialMemory());
+  const characterRootRef = useRef<HTMLDivElement | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const voiceControlEnabledRef = useRef(false);
   const hasIntroducedRef = useRef(false);
@@ -1365,9 +2013,14 @@ export const InteractiveCharacter: React.FC = () => {
   const speakSmoothly = useCallback(
     (
       text: string,
-      options?: { language?: KukuLanguage; expressionAfter?: Expression },
+      options?: {
+        language?: KukuLanguage;
+        expressionAfter?: Expression;
+        tone?: SpeechTone;
+      },
     ) => {
       const language = options?.language ?? kukuLanguageRef.current;
+      const speechStyle = getSpeechStyle(options?.tone ?? "neutral", language);
       lastSpokenResponseRef.current = text;
       speechTokenRef.current += 1;
       const speechToken = speechTokenRef.current;
@@ -1418,8 +2071,8 @@ export const InteractiveCharacter: React.FC = () => {
         utterance.lang = language === "ml" ? "ml-IN" : "en-IN";
         utterance.voice = voice;
         utterance.volume = 0.95;
-        utterance.rate = language === "ml" ? 0.86 : 0.91;
-        utterance.pitch = language === "ml" ? 1.03 : 1.07;
+        utterance.rate = speechStyle.rate;
+        utterance.pitch = speechStyle.pitch;
 
         let hasBoundary = false;
         startFallbackLipSync(language, chunk);
@@ -1499,19 +2152,58 @@ export const InteractiveCharacter: React.FC = () => {
   }, []);
 
   const applyVoiceIntent = useCallback(
-    (intentDefinition: IntentDefinition) => {
+    (intentDefinition: IntentDefinition, transcript = "") => {
       clearEmotionTimers();
 
-      const language =
-        intentDefinition.intent === "switchMalayalam"
-          ? "ml"
-          : intentDefinition.intent === "switchEnglish"
-          ? "en"
-          : kukuLanguageRef.current;
+      const language = getLanguageForTranscript(
+        transcript,
+        intentDefinition.intent,
+        kukuLanguageRef.current,
+      );
       const nextExpression = getExpressionForIntent(intentDefinition.intent);
-      const response = pickResponse(
-        intentDefinition.responses[language],
-        lastSpokenResponseRef.current,
+      const speechTone = getSpeechToneForIntent(intentDefinition.intent);
+      const memory = memoryRef.current;
+      const isNicknameIntent =
+        intentDefinition.intent === "nicknameReaction" ||
+        intentDefinition.intent === "nicknameStretchReaction";
+      const isRepeatTopic =
+        memory.lastTopic === intentDefinition.intent &&
+        intentDefinition.intent !== "casualChat" &&
+        intentDefinition.intent !== "listeningCheck";
+      const nextVisitorType =
+        getVisitorTypeForIntent(intentDefinition.intent) ?? memory.visitorType;
+      const nextMood = getMoodForIntent(intentDefinition.intent, memory);
+      const responsePool =
+        isNicknameIntent && memory.hasHeardNickname
+          ? repeatNicknameResponses[language]
+          : intentDefinition.intent === "wake" && expressionRef.current === "sleeping"
+          ? sleepyWakeResponses[language]
+          : intentDefinition.responses[language];
+      const baseResponse = pickResponse(responsePool, memory.recentResponses);
+      const responseWithRepeat = isRepeatTopic
+        ? `${pickResponse(repeatTopicOpeners[language], memory.recentResponses)} ${baseResponse}`
+        : baseResponse;
+      const nextMemory: CharacterMemory = {
+        hasHeardNickname: memory.hasHeardNickname || isNicknameIntent,
+        interactionCount: memory.interactionCount + 1,
+        unknownCount: 0,
+        repeatCount: isRepeatTopic ? memory.repeatCount + 1 : 0,
+        visitorType: nextVisitorType,
+        mood: nextMood,
+        lastTopic: intentDefinition.intent,
+        recentIntents: rememberLimited(memory.recentIntents, intentDefinition.intent),
+        recentResponses: memory.recentResponses,
+      };
+      const responseWithFollowUp = buildResponseWithFollowUp(
+        intentDefinition.intent,
+        responseWithRepeat,
+        language,
+        nextMemory,
+      );
+      const response = buildMoodAwareResponse(
+        responseWithFollowUp,
+        language,
+        nextMemory,
       );
       const expressionAfter =
         intentDefinition.intent === "sleep"
@@ -1521,6 +2213,11 @@ export const InteractiveCharacter: React.FC = () => {
           : intentDefinition.intent === "emotionalSupport"
           ? "soft"
           : "listening";
+
+      memoryRef.current = {
+        ...nextMemory,
+        recentResponses: rememberLimited(memory.recentResponses, response),
+      };
 
       if (intentDefinition.intent === "switchMalayalam") {
         setKukuLanguage("ml");
@@ -1532,9 +2229,18 @@ export const InteractiveCharacter: React.FC = () => {
         kukuLanguageRef.current = "en";
       }
 
+      if (
+        intentDefinition.intent !== "switchMalayalam" &&
+        intentDefinition.intent !== "switchEnglish" &&
+        language !== kukuLanguageRef.current
+      ) {
+        setKukuLanguage(language);
+        kukuLanguageRef.current = language;
+      }
+
       if (nextExpression === "waking") {
         setExpression("waking");
-        speakSmoothly(response, { language, expressionAfter });
+        speakSmoothly(response, { language, expressionAfter, tone: speechTone });
         runIntentAction(intentDefinition.action);
 
         wakingTimeoutRef.current = setTimeout(() => {
@@ -1545,7 +2251,7 @@ export const InteractiveCharacter: React.FC = () => {
       }
 
       setExpression(nextExpression);
-      speakSmoothly(response, { language, expressionAfter });
+      speakSmoothly(response, { language, expressionAfter, tone: speechTone });
       runIntentAction(intentDefinition.action);
 
       if (
@@ -1572,21 +2278,39 @@ export const InteractiveCharacter: React.FC = () => {
 
     if (now - lastHandledAtRef.current < commandCooldownMs) return;
 
+    const memory = memoryRef.current;
     const unknownDefinition = intentDefinitions.find(
       (definition) => definition.intent === "unknown",
     );
-    const fallbackResponses =
-      unknownDefinition?.responses[kukuLanguageRef.current] ?? [
-        "I caught the sound, not the meaning. One more try?",
-      ];
+    const language = kukuLanguageRef.current;
+    const fallbackResponses = [
+      ...(unknownDefinition?.responses[language] ?? [
+        "I heard something, but I didn't quite get it. Try once more?",
+      ]),
+      ...(memory.unknownCount >= 1
+        ? language === "ml"
+          ? ["Try ചെയ്യൂ: projects, skills, experience, contact, അല്ലെങ്കിൽ ഒരു joke പറയൂ."]
+          : ["Try asking about projects, skills, experience, contact, or ask me for a joke."]
+        : []),
+    ];
+    const response = pickResponse(fallbackResponses, memory.recentResponses);
 
     lastHandledIntentRef.current = "unknown";
     lastHandledAtRef.current = now;
+    memoryRef.current = {
+      ...memory,
+      interactionCount: memory.interactionCount + 1,
+      unknownCount: memory.unknownCount + 1,
+      lastTopic: "unknown",
+      recentIntents: rememberLimited(memory.recentIntents, "unknown"),
+      recentResponses: rememberLimited(memory.recentResponses, response),
+    };
     setExpression("thinking");
-    speakSmoothly(
-      pickResponse(fallbackResponses, lastSpokenResponseRef.current),
-      { language: kukuLanguageRef.current, expressionAfter: "listening" },
-    );
+    speakSmoothly(response, {
+      language,
+      expressionAfter: "listening",
+      tone: "thinking",
+    });
   }, [speakSmoothly]);
 
   const reactToTouch = useCallback(() => {
@@ -1616,6 +2340,8 @@ export const InteractiveCharacter: React.FC = () => {
   }, [clearEmotionTimers, scheduleIdleEmotions]);
 
   const startVoiceControl = useCallback(() => {
+    if (isSpeakingRef.current) return;
+
     const speechWindow = window as SpeechWindow;
     const SpeechRecognition =
       speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
@@ -1624,6 +2350,7 @@ export const InteractiveCharacter: React.FC = () => {
       speakSmoothly(unsupportedBrowserResponses[kukuLanguageRef.current], {
         language: kukuLanguageRef.current,
         expressionAfter: "soft",
+        tone: "soft",
       });
       return;
     }
@@ -1633,9 +2360,13 @@ export const InteractiveCharacter: React.FC = () => {
       stopRecognitionSafely();
       speakSmoothly(
         kukuLanguageRef.current === "ml"
-          ? "ശരി, ഞാൻ ഇപ്പോൾ കേൾക്കുന്നത് നിർത്താം."
-          : "Okay, I will stop listening for now.",
-        { language: kukuLanguageRef.current, expressionAfter: "soft" },
+          ? "ഓക്കേ, ഞാൻ കേൾക്കുന്നത് stop ചെയ്തു."
+          : "Okay, I've stopped listening.",
+        {
+          language: kukuLanguageRef.current,
+          expressionAfter: "soft",
+          tone: "soft",
+        },
       );
       return;
     }
@@ -1664,6 +2395,22 @@ export const InteractiveCharacter: React.FC = () => {
       const now = Date.now();
       const normalizedLastResponse = normalizeVoiceText(lastSpokenResponseRef.current);
 
+      debugVoice("heard", {
+        transcript,
+        normalizedTranscript,
+        intent: intentDefinition?.intent ?? "unknown",
+        language: kukuLanguageRef.current,
+        detectedLanguage: intentDefinition
+          ? getLanguageForTranscript(
+              transcript,
+              intentDefinition.intent,
+              kukuLanguageRef.current,
+            )
+          : kukuLanguageRef.current,
+        visitorType: memoryRef.current.visitorType,
+        mood: memoryRef.current.mood,
+      });
+
       if (!normalizedTranscript) {
         return;
       }
@@ -1676,10 +2423,12 @@ export const InteractiveCharacter: React.FC = () => {
       }
 
       if (
-        normalizedLastResponse &&
-        (normalizedLastResponse.includes(normalizedTranscript) ||
-          normalizedTranscript.includes(normalizedLastResponse.slice(0, 60)))
+        isLikelySpeechEcho(normalizedTranscript, normalizedLastResponse)
       ) {
+        debugVoice("ignored-echo", {
+          normalizedTranscript,
+          normalizedLastResponse: normalizedLastResponse.slice(0, 120),
+        });
         return;
       }
 
@@ -1694,7 +2443,17 @@ export const InteractiveCharacter: React.FC = () => {
         if (!isDuplicateIntent) {
           lastHandledIntentRef.current = intentDefinition.intent;
           lastHandledAtRef.current = now;
-          applyVoiceIntent(intentDefinition);
+          debugVoice("matched", {
+            intent: intentDefinition.intent,
+            aliases: intentDefinition.aliases.slice(0, 5),
+            responseLanguage: getLanguageForTranscript(
+              transcript,
+              intentDefinition.intent,
+              kukuLanguageRef.current,
+            ),
+            repeat: memoryRef.current.lastTopic === intentDefinition.intent,
+          });
+          applyVoiceIntent(intentDefinition, transcript);
         }
 
         return;
@@ -1705,13 +2464,29 @@ export const InteractiveCharacter: React.FC = () => {
 
     recognition.onerror = (event) => {
       setExpression("thinking");
+      debugVoice("error", {
+        error: event.error ?? "unknown",
+        language: kukuLanguageRef.current,
+      });
 
       if (event.error === "not-allowed" || event.error === "service-not-allowed") {
         voiceControlEnabledRef.current = false;
         speakSmoothly(microphoneBlockedResponses[kukuLanguageRef.current], {
           language: kukuLanguageRef.current,
           expressionAfter: "soft",
+          tone: "soft",
         });
+        return;
+      }
+
+      if (
+        event.error === "no-speech" ||
+        event.error === "audio-capture" ||
+        event.error === "network" ||
+        event.error === "aborted"
+      ) {
+        stopRecognitionSafely();
+        restartVoiceRecognition(650);
       }
     };
 
@@ -1722,6 +2497,8 @@ export const InteractiveCharacter: React.FC = () => {
 
     recognitionRef.current = recognition;
     voiceControlEnabledRef.current = true;
+    lastFinalTranscriptRef.current = "";
+    lastFinalTranscriptAtRef.current = 0;
     setExpression("listening");
 
     try {
@@ -1731,20 +2508,31 @@ export const InteractiveCharacter: React.FC = () => {
         speakSmoothly(firstGreeting[kukuLanguageRef.current], {
           language: kukuLanguageRef.current,
           expressionAfter: "listening",
+          tone: "playful",
         });
       } else {
         speakSmoothly(
           kukuLanguageRef.current === "ml"
-            ? "ഞാൻ കേൾക്കുന്നുണ്ട്. Abhiram, projects, experience, skills, hire, contact എന്നിവയെ കുറിച്ച് ചോദിക്കാം."
-            : "I'm listening. Ask me about Abhiram, projects, experience, skills, hire, or contact.",
-          { language: kukuLanguageRef.current, expressionAfter: "listening" },
+            ? "ആ, ഞാൻ കേൾക്കുന്നുണ്ട്. Abhiram, projects, skills, experience, hire, contact—എന്തും ചോദിച്ചോളൂ."
+            : "Yep, I'm listening. Ask me about Abhiram, projects, skills, experience, hiring, or contact.",
+          {
+            language: kukuLanguageRef.current,
+            expressionAfter: "listening",
+            tone: "neutral",
+          },
         );
       }
     } catch (error) {
       voiceControlEnabledRef.current = false;
       setExpression("thinking");
     }
-  }, [applyVoiceIntent, handleUnknownTranscript, speakSmoothly, stopRecognitionSafely]);
+  }, [
+    applyVoiceIntent,
+    handleUnknownTranscript,
+    restartVoiceRecognition,
+    speakSmoothly,
+    stopRecognitionSafely,
+  ]);
 
   useEffect(() => {
     expressionRef.current = expression;
@@ -1791,10 +2579,22 @@ export const InteractiveCharacter: React.FC = () => {
   }, [clearLipSync, clearSpeechChunkTimer, stopRecognitionSafely]);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handlePointerMove = (e: PointerEvent) => {
+      const characterBounds = characterRootRef.current?.getBoundingClientRect();
+      const centerX = characterBounds
+        ? characterBounds.left + characterBounds.width / 2
+        : window.innerWidth / 2;
+      const centerY = characterBounds
+        ? characterBounds.top + characterBounds.height / 2
+        : window.innerHeight / 2;
+      const trackingRadiusX = Math.max((characterBounds?.width ?? window.innerWidth) * 0.55, 140);
+      const trackingRadiusY = Math.max((characterBounds?.height ?? window.innerHeight) * 0.55, 140);
+      const nextX = clamp((e.clientX - centerX) / trackingRadiusX, -1, 1);
+      const nextY = clamp((e.clientY - centerY) / trackingRadiusY, -1, 1);
+
       setMousePosition({
-        x: (e.clientX / window.innerWidth) * 2 - 1,
-        y: (e.clientY / window.innerHeight) * 2 - 1,
+        x: nextX,
+        y: nextY,
       });
 
       if (isSpeakingRef.current) return;
@@ -1819,9 +2619,9 @@ export const InteractiveCharacter: React.FC = () => {
 
     scheduleIdleEmotions();
 
-    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("pointermove", handlePointerMove);
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("pointermove", handlePointerMove);
       clearEmotionTimers();
     };
   }, [clearEmotionTimers, scheduleIdleEmotions]);
@@ -1886,16 +2686,27 @@ export const InteractiveCharacter: React.FC = () => {
 
   const pupilOffset =
     expression === "thinking"
-      ? { x: 0, y: -7 }
-      : expression === "playful"
-      ? { x: mousePosition.x * 3 - 2, y: mousePosition.y * 2 - 2 }
-      : expression === "speaking"
-      ? { x: mousePosition.x * 2.5, y: mousePosition.y * 2 - 1 }
-      : expression === "waking"
-      ? { x: mousePosition.x * 2, y: mousePosition.y * 1.5 + 2 }
-      : expression === "listening"
-      ? { x: mousePosition.x * 3 + 3, y: mousePosition.y * 2 }
-      : { x: mousePosition.x * 4, y: mousePosition.y * 3 };
+      ? { x: mousePosition.x * 5, y: mousePosition.y * 4 - 2 }
+    : expression === "playful"
+      ? { x: mousePosition.x * 6, y: mousePosition.y * 4.5 }
+    : expression === "speaking"
+      ? { x: mousePosition.x * 5, y: mousePosition.y * 4 }
+    : expression === "waking"
+      ? { x: mousePosition.x * 4, y: mousePosition.y * 3 + 1 }
+    : expression === "listening"
+      ? { x: mousePosition.x * 6.5, y: mousePosition.y * 4.5 }
+      : { x: mousePosition.x * 6, y: mousePosition.y * 4.5 };
+
+  const headRotation = {
+    x: clamp(mousePosition.y * -13, -13, 13),
+    y: clamp(mousePosition.x * 16, -16, 16),
+    z: clamp(mousePosition.x * -2.4, -2.4, 2.4),
+  };
+
+  const faceOffset = {
+    x: mousePosition.x * 18,
+    y: mousePosition.y * 10,
+  };
 
   const mouthPath =
     isSpeaking
@@ -1941,6 +2752,7 @@ export const InteractiveCharacter: React.FC = () => {
 
   return (
     <div
+      ref={characterRootRef}
       className="relative w-full aspect-square max-w-[540px] mx-auto flex items-center justify-center [perspective:1200px] overflow-visible pointer-events-auto"
       role="button"
       tabIndex={0}
@@ -2014,14 +2826,16 @@ export const InteractiveCharacter: React.FC = () => {
               ? [0, 3, -2, 0]
               : [0, -3, 2, 0],
           scale: isSpeaking ? [1, 1.01, 1] : [1, 1.018, 1],
-          rotateX: mousePosition.y * 8,
-          rotateY: mousePosition.x * 10,
+          rotateX: headRotation.x,
+          rotateY: headRotation.y,
+          rotateZ: headRotation.z,
         }}
         transition={{
           y: { duration: 6.2, repeat: Infinity, ease: "easeInOut" },
           scale: { duration: 4.5, repeat: Infinity, ease: "easeInOut" },
           rotateX: { type: "spring", stiffness: 85, damping: 22 },
           rotateY: { type: "spring", stiffness: 85, damping: 22 },
+          rotateZ: { type: "spring", stiffness: 85, damping: 24 },
         }}
       >
         {/* Big glossy reflection */}
@@ -2054,8 +2868,8 @@ export const InteractiveCharacter: React.FC = () => {
         <motion.div
           className="absolute top-[31%] w-[82%] flex flex-col items-center gap-5 z-20"
           animate={{
-            x: mousePosition.x * 15,
-            y: mousePosition.y * 8,
+            x: faceOffset.x,
+            y: faceOffset.y,
           }}
           transition={{ type: "spring", stiffness: 180, damping: 20 }}
         >
