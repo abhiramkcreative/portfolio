@@ -9,7 +9,7 @@ Abhiram K is a Computer Science graduate from Kerala, India, interested in Robot
 - Education: B.Sc. Computer Science, University of Calicut – NMSM Government College, Kalpetta (2022–2025)
 - Location: Kozhikode, Kerala, India
 - Portfolio: https://abhiramk.in/
-- GitHub: https://github.com/abhiramk-10
+- GitHub: https://github.com/abhiramkcreative
 - LinkedIn: https://www.linkedin.com/in/abhiramkcreative
 - Professional focus: Robotics & Automation, C++, ROS 2, autonomous systems
 
@@ -28,8 +28,6 @@ Abhiram K is a Computer Science graduate from Kerala, India, interested in Robot
 
 ## Selected work
 - AI-Assisted Automated Smart Security System: academic project using Python, OpenCV, and OCR for vehicle number-plate recognition and access control.
-- LocalAssistant: personal C++ project focused on local system tools, file operations, task handling, and software logic without external AI APIs.
-- Robotics learning projects and simulations: ongoing practice with ROS 2, SLAM, autonomous navigation, and mobile robot concepts.
 
 ## Experience
 - Software Support & Developer, IT Department at Vestano International Pvt. Ltd. (10/2025–09/2026): provided technical support and troubleshooting for retail and POS software, diagnosed operational workflow issues, assisted users, and supported system reliability.
