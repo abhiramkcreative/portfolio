@@ -33,23 +33,8 @@ const skills = [
 const projects = [
   {
     title: "AI-Assisted Smart Security Gate",
-    desc: "A Python and OpenCV computer vision project for practical automation, number plate recognition, OCR, vehicle access control, and real-world security workflows.",
+    desc: "A final-year academic project using Python, OpenCV, and OCR for vehicle number-plate recognition and access control.",
     icon: ShieldCheck,
-  },
-  {
-    title: "Robotics & Autonomous Systems Learning",
-    desc: "Hands-on learning in ROS 2, robot kinematics, motion planning, 3D SLAM, visual odometry, and autonomous navigation through simulations and guided projects.",
-    icon: BrainCircuit,
-  },
-  {
-    title: "LocalAssistant — C++",
-    desc: "A local C++ assistant project focused on system information, file operations, task handling, and building practical software logic without external AI APIs.",
-    icon: Code2,
-  },
-  {
-    title: "Computer Vision & OCR",
-    desc: "Practical experiments with Python, OpenCV, image processing, OCR, and number-plate recognition as part of computer vision learning.",
-    icon: BrainCircuit,
   },
 ];
 
@@ -235,7 +220,7 @@ export default function App() {
               className="mt-8 flex items-center justify-center gap-3"
             >
               {[
-                { icon: Github, href: "https://github.com/abhiramk-10", label: "GitHub" },
+                { icon: Github, href: "https://github.com/abhiramkcreative", label: "GitHub" },
                 { icon: Linkedin, href: "https://www.linkedin.com/in/abhiramkcreative", label: "LinkedIn" },
                 { icon: Instagram, href: "https://www.instagram.com/abhiramk_", label: "Instagram" },
                 { icon: Mail, href: "mailto:abhiramkwork@gmail.com", label: "Email" },
