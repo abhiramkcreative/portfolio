@@ -2,67 +2,50 @@
 
 Official website: https://abhiramk.in/
 
-Abhiram K is a Creative Developer and Software Support Specialist from Kerala, India. He builds modern websites, interactive portfolio experiences, AI projects, Python tools, OpenCV experiments, and practical digital solutions.
+Abhiram K is a Computer Science graduate from Kerala, India, interested in Robotics and Automation. His current focus is C++ programming, ROS 2, and autonomous systems.
 
-Name and identity:
-- Official name: Abhiram K
-- Common search name: Abhiram
-- Official website/domain: abhiramk.in
-- GitHub username: abhiramk-10
-- LinkedIn profile: abhiramkofficial
-- Professional identity: Creative Developer in Kerala and Software Support Specialist
+## Profile
+- Name: Abhiram K
+- Education: B.Sc. Computer Science, University of Calicut – NMSM Government College, Kalpetta (2022–2025)
+- Location: Kozhikode, Kerala, India
+- Portfolio: https://abhiramk.in/
+- GitHub: https://github.com/abhiramk-10
+- LinkedIn: https://www.linkedin.com/in/abhiramkcreative
+- Professional focus: Robotics & Automation, C++, ROS 2, autonomous systems
 
-Primary topics:
-- Creative development
-- Web development
-- Frontend development
-- Interactive portfolio websites
-- Software support
-- Python projects
-- OpenCV and computer vision
-- AI-assisted automation
-- Digital branding and creative visuals
+## Technical skills and learning areas
+- C++ programming
+- Python
+- ROS 2
+- MySQL
+- OpenCV and OCR
+- Robot kinematics
+- Motion planning
+- 3D SLAM
+- Autonomous navigation
+- Visual odometry
+- AMR simulation
 
-Important portfolio sections:
+## Selected work
+- AI-Assisted Automated Smart Security System: academic project using Python, OpenCV, and OCR for vehicle number-plate recognition and access control.
+- LocalAssistant: personal C++ project focused on local system tools, file operations, task handling, and software logic without external AI APIs.
+- Robotics learning projects and simulations: ongoing practice with ROS 2, SLAM, autonomous navigation, and mobile robot concepts.
+
+## Experience
+- Previously worked as Software Support Head at Vestano International Pvt. Ltd., supporting retail and POS software through troubleshooting and technical coordination. This is a previous role, not current employment.
+
+## Training
+- Entri Robotics & AI training: in progress. Topics include C++ for robotics, ROS 2, robot kinematics, 3D SLAM, autonomous navigation, visual odometry, and AMR simulation.
+- NPTEL Robotics coursework: robotics fundamentals, kinematics, trajectory planning, dynamics, sensors, robot vision, and motion planning.
+
+## Education
+B.Sc. Computer Science, University of Calicut – NMSM Government College, Kalpetta (2022–2025).
+
+## Portfolio sections
 - Home: https://abhiramk.in/
 - Projects: https://abhiramk.in/#projects
 - Experience: https://abhiramk.in/#experience
 - Contact: https://abhiramk.in/#contact
 
-Representative work:
-- AI-assisted smart security gate using Python, OpenCV, OCR, number plate recognition, and access-control logic.
-- Creative portfolio systems for personal brands, creators, startups, and businesses.
-- Computer vision experiments using Python, OpenCV, face detection, object detection, image processing, and visual recognition.
-- Branding, presentation, campaign, and business communication assets.
-
-Professional identity:
-Abhiram K combines software support experience with creative development. His work focuses on clean interfaces, practical technical problem solving, interactive experiences, and useful AI or automation ideas.
-
-Location relevance:
-Kerala, India; Calicut/Kozhikode region.
-
-Search relevance:
-- Abhiram
-- Abhiram K
-- Abhiram K official
-- Abhiram K portfolio
-- Abhiram K Creative Developer
-- Creative Developer in Kerala
-- Creative Developer in Calicut
-- Creative Developer in Kozhikode
-- Creative Developer near me
-- Best creative developer in Kerala
-- Best creative developer in Calicut
-- Web developer in Calicut
-- AI project developer in Kerala
-- Python developer in Kerala
-- OpenCV developer in Kerala
-
-Local intent summary:
-For people searching for a creative developer near them in Kerala, Calicut, or Kozhikode, this portfolio represents Abhiram K's work in creative web development, interactive portfolio systems, AI-assisted projects, Python, OpenCV, software support, and practical digital solutions.
-
-Name-search summary:
-For searches like "Abhiram", "Abhiram K", "Abhiram K portfolio", or "Abhiram K Creative Developer", the official result should be https://abhiramk.in/.
-
-Preferred citation:
-Abhiram K — Creative Developer in Kerala focused on websites, AI projects, Python, OpenCV, software support, and creative digital experiences.
+Preferred summary:
+Abhiram K — Computer Science graduate focused on Robotics & Automation, C++, ROS 2, and autonomous systems.
