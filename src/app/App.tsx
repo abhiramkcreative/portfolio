@@ -126,7 +126,7 @@ export default function App() {
                   transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                   className="text-[clamp(2.5rem,4vw,4rem)] xl:text-[5rem] font-black leading-[0.9] tracking-[-0.05em] text-slate-950 lg:text-right mix-blend-multiply mt-2 lg:mt-0 whitespace-nowrap text-left"
                 >
-                  <span className="sr-only">Abhiram K — Robotics and Automation learner from Kerala</span>
+                  <span className="sr-only">Abhiram K — Creative Developer from Kerala</span>
                   <span aria-hidden="true" className="block bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent text-[32px] font-bold text-right px-[20px] py-[0px]">Hello! I'm</span>
                   <span aria-hidden="true"> Abhiram K</span>
                 </motion.h1>
@@ -148,9 +148,9 @@ export default function App() {
                   transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                   className="text-[clamp(2.5rem,4vw,4rem)] xl:text-[5rem] font-black leading-[0.9] tracking-[-0.05em] text-slate-950 lg:text-right mix-blend-multiply mt-2 lg:mt-0 whitespace-nowrap text-left"
                 >
-                  Robotics
+                  Creative
                   <span className="block text-slate-500">
-                    Automation
+                    Developer
                   </span>
                 </motion.h2>
               </div>
@@ -162,7 +162,7 @@ export default function App() {
               transition={{ duration: 0.75, delay: 0.48 }}
               className="mx-auto mt-8 max-w-2xl text-center text-sm font-semibold leading-6 text-slate-600 md:text-base"
             >
-              Computer Science graduate focused on Robotics & Automation, C++, ROS 2, and autonomous systems.
+              Creative Developer and Computer Science graduate from Kerala, building practical digital experiences and exploring Robotics & Automation, C++, and ROS 2.
             </motion.p>
 
             <div className="mt-12 md:mt-20 flex flex-col items-center">
