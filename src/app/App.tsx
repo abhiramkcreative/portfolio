@@ -18,16 +18,16 @@ import { InteractiveCharacter } from "./components/InteractiveCharacter";
 import "@figma/astraui/styles.css";
 
 const skills = [
+  "C++",
   "Python",
-  "JavaScript",
-  "PHP",
+  "ROS 2",
   "MySQL",
   "OpenCV",
-  "AI Tools",
-  "UI/UX",
-  "Branding",
-  "Automation",
-  "Creative Direction",
+  "OCR",
+  "Robot Kinematics",
+  "Motion Planning",
+  "3D SLAM",
+  "Autonomous Navigation",
 ];
 
 const projects = [
@@ -37,18 +37,18 @@ const projects = [
     icon: ShieldCheck,
   },
   {
-    title: "Creative Portfolio Systems",
-    desc: "Modern animated portfolio websites and interactive web experiences for personal brands, creators, startups, and businesses in Kerala and Calicut.",
+    title: "Robotics & Autonomous Systems Learning",
+    desc: "Hands-on learning in ROS 2, robot kinematics, motion planning, 3D SLAM, visual odometry, and autonomous navigation through simulations and guided projects.",
+    icon: BrainCircuit,
+  },
+  {
+    title: "LocalAssistant — C++",
+    desc: "A local C++ assistant project focused on system information, file operations, task handling, and building practical software logic without external AI APIs.",
     icon: Code2,
   },
   {
-    title: "Vestano Branding & Campaigns",
-    desc: "Creative digital solutions including brand identity, marketing visuals, proposal designs, launch campaigns, presentation systems, and business communication assets.",
-    icon: Palette,
-  },
-  {
-    title: "Computer Vision Experiments",
-    desc: "AI project experiments using Python, OpenCV, face detection, object detection, number plate region detection, image processing, and visual recognition systems.",
+    title: "Computer Vision & OCR",
+    desc: "Practical experiments with Python, OpenCV, image processing, OCR, and number-plate recognition as part of computer vision learning.",
     icon: BrainCircuit,
   },
 ];
@@ -57,20 +57,20 @@ const experience = [
   {
     role: "Software Support Head",
     company: "Vestano International Pvt. Ltd.",
-    period: "Present",
-    desc: "Managing retail software support, POS troubleshooting, technical coordination, system stability, and operational software workflows.",
+    period: "Previous Role",
+    desc: "Supported retail and POS software operations through troubleshooting, technical coordination, and resolving day-to-day system issues.",
   },
   {
-    role: "Creative Developer",
-    company: "Portfolio & Web Projects",
-    period: "Personal Work",
-    desc: "Creating modern portfolio websites, visual layouts, animated interfaces, and creative digital experiences.",
+    role: "Robotics & Automation Learner",
+    company: "Entri Robotics & AI Training",
+    period: "In Progress",
+    desc: "Developing practical skills in C++ for robotics, ROS 2, robot kinematics, 3D SLAM, autonomous navigation, visual odometry, and AMR simulation.",
   },
   {
-    role: "AI & Automation Enthusiast",
-    company: "Academic / Personal Projects",
-    period: "Ongoing",
-    desc: "Building practical AI, computer vision, and automation systems using Python, OpenCV, OCR, and modern web tools.",
+    role: "Computer Vision Project",
+    company: "Academic Project",
+    period: "Completed",
+    desc: "Developed an AI-assisted smart security system using Python, OpenCV, and OCR for vehicle number-plate recognition and access control.",
   },
 ];
 
@@ -153,7 +153,7 @@ export default function App() {
                   transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                   className="text-[clamp(2.5rem,4vw,4rem)] xl:text-[5rem] font-black leading-[0.9] tracking-[-0.05em] text-slate-950 lg:text-right mix-blend-multiply mt-2 lg:mt-0 whitespace-nowrap text-left"
                 >
-                  <span className="sr-only">Abhiram K — Creative Developer from Kerala</span>
+                  <span className="sr-only">Abhiram K — Robotics and Automation learner from Kerala</span>
                   <span aria-hidden="true" className="block bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent text-[32px] font-bold text-right px-[20px] py-[0px]">Hello! I'm</span>
                   <span aria-hidden="true"> Abhiram K</span>
                 </motion.h1>
@@ -175,9 +175,9 @@ export default function App() {
                   transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                   className="text-[clamp(2.5rem,4vw,4rem)] xl:text-[5rem] font-black leading-[0.9] tracking-[-0.05em] text-slate-950 lg:text-right mix-blend-multiply mt-2 lg:mt-0 whitespace-nowrap text-left"
                 >
-                  Creative
+                  Robotics
                   <span className="block text-slate-500">
-                    Developer
+                    Automation
                   </span>
                 </motion.h2>
               </div>
@@ -189,7 +189,7 @@ export default function App() {
               transition={{ duration: 0.75, delay: 0.48 }}
               className="mx-auto mt-8 max-w-2xl text-center text-sm font-semibold leading-6 text-slate-600 md:text-base"
             >
-              Creative Developer from Kerala building websites, AI projects, Python tools, and digital experiences.
+              Computer Science graduate focused on Robotics & Automation, C++, ROS 2, and autonomous systems.
             </motion.p>
 
             <div className="mt-12 md:mt-20 flex flex-col items-center">
@@ -201,7 +201,7 @@ export default function App() {
               >
                 <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_18px_rgba(16,185,129,0.8)]" />
                 <span className="text-sm font-medium text-slate-600">
-                  Available for creative and software projects
+                  Open to entry-level Robotics & Automation opportunities
                 </span>
               </motion.div>
 
@@ -236,7 +236,7 @@ export default function App() {
             >
               {[
                 { icon: Github, href: "https://github.com/abhiramk-10", label: "GitHub" },
-                { icon: Linkedin, href: "https://linkedin.com/in/abhiramkofficial", label: "LinkedIn" },
+                { icon: Linkedin, href: "https://www.linkedin.com/in/abhiramkcreative", label: "LinkedIn" },
                 { icon: Instagram, href: "https://www.instagram.com/abhiramk_", label: "Instagram" },
                 { icon: Mail, href: "mailto:abhiramkwork@gmail.com", label: "Email" },
               ].map((social) => (
@@ -266,24 +266,25 @@ export default function App() {
               </div>
 
               <h2 className="text-[clamp(2.4rem,5vw,4.5rem)] font-black leading-none tracking-[-0.05em] text-slate-950">
-                Practical tech with creative execution.
+                Building a foundation in Robotics & Automation.
               </h2>
             </div>
 
             <div className="lg:col-span-7">
               <p className="text-xl leading-8 text-slate-600">
-                I’m Abhiram K, a Creative Developer from Kerala and B.Sc
-                Computer Science graduate. My work connects modern websites,
-                interactive portfolios, automation, AI experiments, Python,
-                OpenCV, branding, and clean digital design for practical web
-                and software ideas.
+                I’m Abhiram K, a Computer Science graduate from Kerala
+                interested in Robotics and Automation. I’m focused on C++
+                programming, ROS 2, and autonomous systems, while developing
+                my understanding of robot kinematics, motion planning, 3D SLAM,
+                autonomous navigation, and computer vision.
               </p>
 
               <p className="mt-6 text-lg leading-8 text-slate-500">
-                I like building things that look premium, feel smooth, and
-                solve real problems — from AI-assisted security systems and
-                computer vision experiments to responsive portfolio websites,
-                proposal systems, and brand experiences for digital-first work.
+                My academic project was an AI-assisted smart security system
+                using Python, OpenCV, and OCR for vehicle number-plate
+                recognition and access control. I also practise C++ through
+                personal software projects and continue learning robotics
+                through structured training and hands-on simulations.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
@@ -313,9 +314,9 @@ export default function App() {
             </div>
 
             <p className="max-w-md text-lg leading-7 text-slate-500">
-              A mix of creative development, software, AI, automation,
-              branding, and visual systems built with a practical,
-              user-focused approach.
+              Selected academic and personal work connected to computer
+              vision, C++ software development, and my ongoing learning in
+              Robotics & Automation.
             </p>
           </div>
 
@@ -353,7 +354,7 @@ export default function App() {
                 Experience
               </p>
               <h2 className="text-[clamp(2.7rem,5vw,4.8rem)] font-black leading-none tracking-[-0.06em] text-slate-950">
-                Real work, real systems.
+                Learning, building, and improving.
               </h2>
             </div>
 
@@ -426,7 +427,7 @@ export default function App() {
 
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                <span>Based in Kerala, building for the web.</span>
+                <span>Based in Kerala, focused on Robotics & Automation.</span>
               </div>
             </div>
           </div>
