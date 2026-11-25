@@ -32,7 +32,7 @@ Abhiram K is a Computer Science graduate from Kerala, India, interested in Robot
 - Robotics learning projects and simulations: ongoing practice with ROS 2, SLAM, autonomous navigation, and mobile robot concepts.
 
 ## Experience
-- Previously worked as Software Support Head at Vestano International Pvt. Ltd., supporting retail and POS software through troubleshooting and technical coordination. This is a previous role, not current employment.
+- Software Support & Developer, IT Department at Vestano International Pvt. Ltd. (10/2025–09/2026): provided technical support and troubleshooting for retail and POS software, diagnosed operational workflow issues, assisted users, and supported system reliability.
 
 ## Training
 - Entri Robotics & AI training: in progress. Topics include C++ for robotics, ROS 2, robot kinematics, 3D SLAM, autonomous navigation, visual odometry, and AMR simulation.
