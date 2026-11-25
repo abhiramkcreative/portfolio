@@ -33,29 +33,17 @@ const skills = [
 const projects = [
   {
     title: "AI-Assisted Smart Security Gate",
-    desc: "A final-year academic project using Python, OpenCV, and OCR for vehicle number-plate recognition and access control.",
+    desc: "Built a computer vision system using Python, OpenCV, and OCR for real-time number-plate recognition from live camera feeds. Implemented verification logic for authorized vehicle gate access and optimized image preprocessing for varying lighting and weather conditions.",
     icon: ShieldCheck,
   },
 ];
 
 const experience = [
   {
-    role: "Software Support Head",
+    role: "Software Support & Developer, IT Department",
     company: "Vestano International Pvt. Ltd.",
-    period: "Previous Role",
-    desc: "Supported retail and POS software operations through troubleshooting, technical coordination, and resolving day-to-day system issues.",
-  },
-  {
-    role: "Robotics & Automation Learner",
-    company: "Entri Robotics & AI Training",
-    period: "In Progress",
-    desc: "Developing practical skills in C++ for robotics, ROS 2, robot kinematics, 3D SLAM, autonomous navigation, visual odometry, and AMR simulation.",
-  },
-  {
-    role: "Computer Vision Project",
-    company: "Academic Project",
-    period: "Completed",
-    desc: "Developed an AI-assisted smart security system using Python, OpenCV, and OCR for vehicle number-plate recognition and access control.",
+    period: "10/2025 – 09/2026",
+    desc: "Provided technical support and troubleshooting for retail and POS software, resolving operational issues and minimizing disruptions. Diagnosed software-related issues across operational workflows, assisting users and supporting system reliability and productivity.",
   },
 ];
 
