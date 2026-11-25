@@ -32,7 +32,7 @@ const skills = [
 
 const projects = [
   {
-    title: "AI-Assisted Smart Security Gate",
+    title: "AI-Assisted Automated Smart Security",
     desc: "Built a computer vision system using Python, OpenCV, and OCR for real-time number-plate recognition from live camera feeds. Implemented verification logic for authorized vehicle gate access and optimized image preprocessing for varying lighting and weather conditions.",
     icon: ShieldCheck,
   },
