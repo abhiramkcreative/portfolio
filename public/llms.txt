@@ -2,7 +2,7 @@
 
 Official website: https://abhiramk.in/
 
-Abhiram K is a Computer Science graduate from Kerala, India, interested in Robotics and Automation. His current focus is C++ programming, ROS 2, and autonomous systems.
+Abhiram K is a Creative Developer and Computer Science graduate based in Kerala, India. His technical interests include Robotics and Automation, C++ programming, ROS 2, autonomous systems, and computer vision.
 
 ## Profile
 - Name: Abhiram K
@@ -11,7 +11,8 @@ Abhiram K is a Computer Science graduate from Kerala, India, interested in Robot
 - Portfolio: https://abhiramk.in/
 - GitHub: https://github.com/abhiramkcreative
 - LinkedIn: https://www.linkedin.com/in/abhiramkcreative
-- Professional focus: Robotics & Automation, C++, ROS 2, autonomous systems
+- Professional title: Creative Developer
+- Technical focus: Robotics & Automation, C++, ROS 2, autonomous systems
 
 ## Technical skills and learning areas
 - C++ programming
@@ -46,4 +47,4 @@ B.Sc. Computer Science, University of Calicut – NMSM Government College, Kalpe
 - Contact: https://abhiramk.in/#contact
 
 Preferred summary:
-Abhiram K — Computer Science graduate focused on Robotics & Automation, C++, ROS 2, and autonomous systems.
+Abhiram K — Creative Developer in Kerala, with a Computer Science background and technical interests in Robotics & Automation, C++, ROS 2, and autonomous systems.
